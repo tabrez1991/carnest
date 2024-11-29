@@ -1,4 +1,4 @@
-import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom"
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"
 import Layout from "./pages/Layout";
 import Search from "./pages/Search";
 import Login from "./pages/auth/Login";
@@ -20,27 +20,24 @@ function App() {
   return (
     <>
       <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/changepassword" element={<ChangePassword />} />
+            <Route path="/send-reset-password-email" element={<SendPasswordResetEmail />} />
+            <Route path="api/user/reset/:id/:token" element={<ResetPassword />} />
+            <Route path="/userprofile" element={<UserProfile />} />
+            <Route index element={<Search />} />
+            <Route path="/search" element={<Search />} />
 
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgotpassword" element={<ForgotPassword />} />
-          <Route path="/changepassword" element={<ChangePassword />} />
-          <Route path="/send-reset-password-email" element={<SendPasswordResetEmail />} />
-          <Route path="api/user/reset/:id/:token" element={<ResetPassword />} />
-          <Route path="/userprofile" element={<UserProfile />} />
-
-          <Route index element={<Search />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/postride" element={access_token ? <PostRide /> : <Navigate to="/login" />} />
-          <Route path="/yourrides" element={access_token ? <YourRides /> : <Navigate to="/login" />} /> 
-          <Route path="/messages" element={access_token ? <Messages /> : <Navigate to="/login" />} />
-
-          <Route path="/vehicles" element={access_token ? <Vehicles /> : <Navigate to="/login" />} />
-
-        </Route>
-      </Routes>
+            <Route path="/postride" element={access_token ? <PostRide /> : <Navigate to="/login" />} />
+            <Route path="/yourrides" element={access_token ? <YourRides /> : <Navigate to="/login" />} />
+            <Route path="/messages" element={access_token ? <Messages /> : <Navigate to="/login" />} />
+            <Route path="/vehicles" element={access_token ? <Vehicles /> : <Navigate to="/login" />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </>
   );

@@ -16,9 +16,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import CarnestLogo from '../assets/car-sharing-logo.png';
 import { Search, DirectionsCar, List, Message, Person } from '@mui/icons-material';
-import { removeToken, getToken } from '../services/LocalStorageService';
+import { removeToken } from '../services/LocalStorageService';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserToken, unSetUserToken } from '../features/authSlice';
+import { unSetUserToken } from '../features/authSlice';
 
 
 const Navbar = () => {
@@ -26,7 +26,7 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
    // Access the token and derive `isLoggedIn` from Redux state
   const { access_token } = useSelector((state) => state.auth);
-  const isLoggedIn = Boolean(access_token);
+  const isLoggedIn = true //Boolean(access_token);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
