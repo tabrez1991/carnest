@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { AppBar,
   Toolbar,
   Typography,
@@ -13,12 +13,11 @@ import { AppBar,
   BottomNavigationAction,
 } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
 import CarnestLogo from '../assets/car-sharing-logo.png';
 import { Search, DirectionsCar, List, Message, Person } from '@mui/icons-material';
-import { removeToken, getToken } from '../services/LocalStorageService';
+import { removeToken } from '../services/LocalStorageService';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserToken, unSetUserToken } from '../features/authSlice';
+import { unSetUserToken } from '../features/authSlice';
 
 
 const Navbar = () => {
