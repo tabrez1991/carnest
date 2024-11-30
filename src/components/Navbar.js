@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { AppBar,
   Toolbar,
   Typography,
@@ -13,7 +13,6 @@ import { AppBar,
   BottomNavigationAction,
 } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
 import CarnestLogo from '../assets/car-sharing-logo.png';
 import { Search, DirectionsCar, List, Message, Person } from '@mui/icons-material';
 import { removeToken } from '../services/LocalStorageService';
@@ -26,7 +25,7 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
    // Access the token and derive `isLoggedIn` from Redux state
   const { access_token } = useSelector((state) => state.auth);
-  const isLoggedIn = true //Boolean(access_token);
+  const isLoggedIn = Boolean(access_token);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 

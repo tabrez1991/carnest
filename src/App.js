@@ -7,7 +7,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import YourRides from "./pages/YourRides";
 import PostRide from "./pages/PostRide";
 import Messages from "./pages/Messages";
-import vehicles from "./pages/Vehicles";
 import { useSelector } from "react-redux";
 import UserProfile from "./pages/auth/UserProfile";
 import Vehicles from "./pages/Vehicles";
@@ -16,12 +15,15 @@ import SendPasswordResetEmail from "./pages/auth/SendPasswordResetEmail";
 import ResetPassword from "./pages/auth/ResetPassword";
 
 function App() {
-  const { access_token } = useSelector(state => state.auth)
+  const { access_token } = useSelector((state) => state.auth);
+
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route index element={<Navigate to={access_token ? "/search" : "/login"} />}/>
+            
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -29,9 +31,9 @@ function App() {
             <Route path="/send-reset-password-email" element={<SendPasswordResetEmail />} />
             <Route path="api/user/reset/:id/:token" element={<ResetPassword />} />
             <Route path="/userprofile" element={<UserProfile />} />
-            <Route index element={<Search />} />
-            <Route path="/search" element={<Search />} />
-
+            
+            {/* Protected routes */}
+            <Route path="/search" element={access_token ? <Search /> : <Navigate to="/login" />} />
             <Route path="/postride" element={access_token ? <PostRide /> : <Navigate to="/login" />} />
             <Route path="/yourrides" element={access_token ? <YourRides /> : <Navigate to="/login" />} />
             <Route path="/messages" element={access_token ? <Messages /> : <Navigate to="/login" />} />
