@@ -13,7 +13,7 @@ import {
 import ChatIcon from '@mui/icons-material/Chat';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
-const MakeReservation = () => {
+const CarpoolBooking = () => {
   const [selectedSeats, setSelectedSeats] = useState(['front passenger', 'back right']);
   const availableSeats = ['front passenger', 'back left', 'back right'];
 
@@ -118,4 +118,4 @@ const MakeReservation = () => {
   );
 };
 
-export default MakeReservation;
+export default CarpoolBooking;

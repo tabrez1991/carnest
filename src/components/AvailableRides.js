@@ -1,48 +1,56 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, Paper, Button, List, ListItem, ListItemText, Divider } from "@mui/material";
-import { FaCarSide } from "react-icons/fa";
+import { FaCarSide, FaArrowLeft } from "react-icons/fa";
 import { GoogleMap, DirectionsRenderer, useJsApiLoader } from "@react-google-maps/api";
+import { useSelector } from "react-redux";
 
-const rides = [
-  {
-    id: 1,
-    from: "Los Angeles",
-    to: "San Francisco",
-    time: "5:00",
-    duration: "6h55",
-    price: "$50.00",
-    driver: "Driver Name",
-    car: "Honda Civic",
-  },
-  {
-    id: 2,
-    from: "Los Angeles",
-    to: "San Francisco",
-    time: "5:00",
-    duration: "6h55",
-    price: "$50.00",
-    driver: "Driver Name",
-    car: "BMW M4",
-  },
-  {
-    id: 3,
-    from: "Los Angeles",
-    to: "San Francisco",
-    time: "5:00",
-    duration: "6h55",
-    price: "$50.00",
-    driver: "Driver Name",
-    car: "Toyota Camry",
-  },
-];
+// const rides = [
+//   {
+//     id: 1,
+//     from: "Los Angeles",
+//     to: "San Francisco",
+//     time: "5:00",
+//     duration: "6h55",
+//     price: "$50.00",
+//     driver: "Driver Name",
+//     car: "Honda Civic",
+//   },
+//   {
+//     id: 2,
+//     from: "Los Angeles",
+//     to: "San Francisco",
+//     time: "5:00",
+//     duration: "6h55",
+//     price: "$50.00",
+//     driver: "Driver Name",
+//     car: "BMW M4",
+//   },
+//   {
+//     id: 3,
+//     from: "Los Angeles",
+//     to: "San Francisco",
+//     time: "5:00",
+//     duration: "6h55",
+//     price: "$50.00",
+//     driver: "Driver Name",
+//     car: "Toyota Camry",
+//   },
+// ];
 
 const center = { lat: 36.7783, lng: -119.4179 }; // California center for initial map view
 
 const AvailableRides = (props) => {
-  const { handleBook } = props;
-  const [selectedRide, setSelectedRide] = useState(rides[0]);
+  const { handleBook, handleBack } = props;
+
+  const { availableRides } = useSelector((state) => state.apiSlice);
+
+  console.log(availableRides)
+
+  const { count, rides } = availableRides;
+
+  const [selectedRide, setSelectedRide] = useState(null);
   const [directions, setDirections] = useState(null);
- 
+
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyA4DgX7hxdOnIKy30hDEi9nzft06J3V6ho", // Replace with your Google Maps API Key
@@ -52,33 +60,47 @@ const AvailableRides = (props) => {
     setSelectedRide(ride);
 
     const directionsService = new window.google.maps.DirectionsService();
+
+    // Create LatLng objects for origin and destination
+    const origin = new window.google.maps.LatLng(ride.going_from_lat, ride.going_from_lng);
+    const destination = new window.google.maps.LatLng(ride.going_to_lat, ride.going_to_lng);
+
     directionsService.route(
       {
-        origin: ride.from,
-        destination: ride.to,
+        origin: origin,
+        destination: destination,
         travelMode: window.google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setDirections(result);
         } else {
-          console.error(`error fetching directions ${result}`);
+          console.error(`Error fetching directions: ${result}`);
         }
       }
     );
   };
 
+
+  useEffect(() => {
+    if (rides.length > 0) {
+      handleSelectRide(rides[0]); // Automatically select the first ride
+    }
+  }, [rides]);
+
+
   if (!isLoaded) return <Typography>Loading Maps...</Typography>;
 
   return (
-    <Box sx={{ display: "flex", height: "88vh", backgroundColor: "#f9f9f9", marginBottom:"10px" }}>
+    <Box sx={{ display: "flex", height: "88vh", backgroundColor: "#f9f9f9", marginBottom: "10px" }}>
       {/* Left Panel */}
       <Box sx={{ width: "40%", padding: 2, overflowY: "auto", borderRight: "1px solid #ddd", backgroundColor: "#fff" }}>
+        <Typography onClick={() => handleBack('available')}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold", textAlign: "center" }}>
           Available Rides
         </Typography>
         <Typography variant="subtitle2" sx={{ mb: 2, textAlign: "left", color: "#888", fontWeight: 700 }}>
-          {new Date().toDateString()}
+          {new Date(selectedRide?.date_time).toDateString()}
         </Typography>
         <List>
           {rides.map((ride) => (
@@ -94,19 +116,19 @@ const AvailableRides = (props) => {
               onClick={() => handleSelectRide(ride)}
             >
               <Typography variant="subtitle2">
-                {ride.time} • {ride.from}
+                {ride.date_time.split('T')[1].replace('Z', '').slice(0, -3)} • {ride.going_from}
               </Typography>
               <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 1 }}>
                 {ride.duration}
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-                {ride.to}
+                {ride.going_to}
               </Typography>
               <Typography
                 variant="h6"
                 sx={{ color: "#FF6436", fontWeight: "bold", display: "inline", marginRight: 1 }}
               >
-                {ride.price}
+                {ride.price_per_seat}
               </Typography>
               <Button
                 size="small"
@@ -120,7 +142,7 @@ const AvailableRides = (props) => {
               <Divider sx={{ my: 1 }} />
               <Typography variant="body2">
                 <FaCarSide style={{ marginRight: 5 }} />
-                {ride.car} • {ride.driver}
+                {ride.vehicle_name} • {ride.driver_name}
               </Typography>
             </Paper>
           ))}

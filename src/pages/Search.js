@@ -3,40 +3,46 @@ import { Alert, Box, Button, CircularProgress, TextField, Typography } from "@mu
 import { useTheme } from '@mui/system';
 import AvailableRides from "../components/AvailableRides";
 import MakeReservation from "../components/MakeReservation";
+import { useSearchRidesMutation } from "../services/apiService";
+import { useDispatch, useSelector } from "react-redux";
+import { setAvailableSeats } from "../features/apiSlice";
 
 
 const Search = () => {
 	const theme = useTheme();
 
-	const [serverError, setServerError] = useState({});
-	const [isLoading, setIsLoading] = useState(false);
+	const [serverError, setServerError] = useState('');
 	const [showSearch, setShowSearch] = useState(true);
 	const [showAvailable, setShowAvailable] = useState(false);
 	const [showMakeReservation, setShowMakeReservation] = useState(false);
+
+	const dispatch = useDispatch()
+
+	const { access_token } = useSelector((state) => state.auth);
+	const [searchRides, { isLoading }] = useSearchRidesMutation();
 
 	const handleSearch = async (e) => {
 		e.preventDefault();
 		const data = new FormData(e.currentTarget);
 		const actualData = {
 			from: data.get('from'),
-			goingTo: data.get('goingTo'),
+			to: data.get('goingTo'),
 			date: data.get('date'),
-			noOfPassengers: data.get('noOfPassengers'),
+			seats: data.get('noOfPassengers'),
+			token: access_token
 		};
 
-		// const res = await searchRides(actualData);
-		console.log(actualData)
-		setShowSearch(false);
-		setShowAvailable(true)
-		setShowMakeReservation(false);
-		// if (res.error) {
-		//   setServerError(res.error.data.errors);
-		// } else if (res.data) {
-		//   storeToken(res.data.token);
-		//   let {access_token} = getToken()
-		//   dispatch(setUserToken({access_token:access_token}))
-		//   navigate('/search');
-		// }
+		const res = await searchRides(actualData);
+		console.log(res)
+		if (res.error) {
+			setServerError(res.error.data.message);
+		} else if (res.data) {
+			const { data } = res
+			dispatch(setAvailableSeats({ data }));
+			setShowSearch(false);
+			setShowAvailable(true)
+			setShowMakeReservation(false);
+		}
 
 	}
 
@@ -46,13 +52,25 @@ const Search = () => {
 		setShowMakeReservation(true);
 	}
 
+	const handleBack = (path) => {
+		if (path === 'available') {
+			setShowSearch(true);
+			setShowAvailable(false);
+			setShowMakeReservation(false);
+		} else {
+			setShowSearch(false);
+			setShowAvailable(true);
+			setShowMakeReservation(false);
+		}
+	}
+
 	return (
 		<Box sx={{
 			height: '90vh',
 			backgroundColor: '#f0f2f5',
 			padding: theme.spacing(2),
 		}}>
-			{showAvailable && <AvailableRides handleBook={handleBook} />}
+			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
 			{showMakeReservation && <MakeReservation />}
 			{showSearch && <Box
 				sx={{
@@ -90,8 +108,6 @@ const Search = () => {
 						label="From"
 						variant="outlined"
 						margin="normal"
-						error={Boolean(serverError.from)}
-						helperText={serverError.from ? serverError.from[0] : ''}
 					/>
 					<TextField
 						fullWidth
@@ -101,8 +117,6 @@ const Search = () => {
 						label="Going To"
 						variant="outlined"
 						margin="normal"
-						error={Boolean(serverError.goingTo)}
-						helperText={serverError.goingTo ? serverError.goingTo[0] : ''}
 					/>
 					<TextField
 						fullWidth
@@ -113,8 +127,7 @@ const Search = () => {
 						label="Date"
 						variant="outlined"
 						margin="normal"
-						error={Boolean(serverError.date)}
-						helperText={serverError.date ? serverError.date[0] : ''}
+
 					/>
 					<TextField
 						fullWidth
@@ -124,8 +137,6 @@ const Search = () => {
 						label="No of passengers"
 						variant="outlined"
 						margin="normal"
-						error={Boolean(serverError.noOfPassengers)}
-						helperText={serverError.noOfPassengers ? serverError.noOfPassengers[0] : ''}
 					/>
 					<Box>
 						{isLoading ? <CircularProgress /> : <Button
@@ -147,7 +158,7 @@ const Search = () => {
 						</Button>}
 					</Box>
 
-					{serverError.non_field_errors ? <Alert severity='error'>{serverError.non_field_errors[0]}</Alert> : ''}
+					{serverError && <Alert severity='error'>{serverError}</Alert>}
 				</Box>
 			</Box>}
 		</Box>)
