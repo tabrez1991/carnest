@@ -5,7 +5,7 @@ export const userAuthApi = createApi({
   reducerPath: 'userAuthApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://nasinghall.pythonanywhere.com/api/user/' }),
   endpoints: (builder) => ({
-    registerUser: builder.mutation({    
+    registerUser: builder.mutation({
       query: (user) => {
         return {
           url: 'register/',
@@ -65,8 +65,21 @@ export const userAuthApi = createApi({
         }
       }
     }),
+    userProfile: builder.mutation({
+      query: (access_token) => {
+        console.log(access_token)
+        return {
+          url: `/profile`,
+          method: 'GET',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
   }),
 });
 
-export const { useRegisterUserMutation , useLoginUserMutation, useChangeUserPasswordMutation, useSendPasswordResetEmailMutation, useResetPasswordMutation 
+export const { useRegisterUserMutation, useLoginUserMutation, useChangeUserPasswordMutation, useSendPasswordResetEmailMutation, useResetPasswordMutation, useUserProfileMutation
 } = userAuthApi

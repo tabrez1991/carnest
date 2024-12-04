@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useTheme } from '@mui/system';
-import { Alert, Box, Button, CircularProgress, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, MenuItem, Select, Snackbar, TextField, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
+import { usePostRideMutation } from "../services/apiService";
+import { useSelector } from "react-redux";
 
 const PostRide = () => {
 	const theme = useTheme();
 
+	const [open, setOpen] = useState(false);
+	const [message, setMessage] = useState("");
 	const [formData, setFormData] = useState({
 		goingFrom: "",
 		goingFromWithinDistance: "",
@@ -18,38 +22,57 @@ const PostRide = () => {
 		rideDescription: ""
 	});
 	const [serverError, setServerError] = useState({});
-	const [isLoading, setIsLoading] = useState(false);
+
+	const { access_token, profile } = useSelector((state) => state.auth);
+	const { vehiclesList } = useSelector((state) => state.apiSlice || { vehiclesList: [] });
+	const [postRide, { isLoading }] = usePostRideMutation();
 
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
+	};
+
+	const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setOpen(false);
 	};
 
 	const handlePostRide = async (e) => {
 		e.preventDefault();
 		const data = new FormData(e.currentTarget);
 		const actualData = {
-			goingFrom: data.get('goingFrom'),
-			goingFromWithinDistance: data.get('goingFromWithinDistance'),
-			goingTo: data.get('goingTo'),
-			goingToWithinDistance: data.get('goingToWithinDistance'),
-			dateTime: data.get('dateTime'),
-			pricePerSeat: data.get('pricePerSeat'),
-			availableNoOfSeats: data.get('availableNoOfSeats'),
-			vehicle: data.get('vehicle'),
-			rideDescription: data.get('rideDescription'),
+			driver: profile?.id,
+			going_from: data.get('goingFrom'),
+			// goingFromWithinDistance: data.get('goingFromWithinDistance'),
+			going_to: data.get('goingTo'),
+			// goingToWithinDistance: data.get('goingToWithinDistance'),
+			date_time: data.get('dateTime'),
+			price_per_seat: data.get('pricePerSeat'),
+			// availableNoOfSeats: data.get('availableNoOfSeats'),
+			vehicle: 1,
+			ride_description: data.get('rideDescription'),
 		};
 
-		// const res = await searchRides(actualData);
-		console.log(actualData)
-		// if (res.error) {
-		//   setServerError(res.error.data.errors);
-		// } else if (res.data) {
-		//   storeToken(res.data.token);
-		//   let {access_token} = getToken()
-		//   dispatch(setUserToken({access_token:access_token}))
-		//   navigate('/search');
-		// }
-
+		const res = await postRide({ actualData, access_token });
+		console.log(res)
+		if (res.error) {
+			setServerError(res.error.data.errors);
+		} else if (res.data) {
+			setMessage("Ride post successfully")
+			setOpen(true);
+			setFormData({
+				goingFrom: "",
+				goingFromWithinDistance: "",
+				goingTo: "",
+				goingToWithinDistance: "",
+				dateTime: "",
+				pricePerSeat: "",
+				availableNoOfSeats: "",
+				vehicle: "",
+				rideDescription: ""
+			})
+		}
 	}
 
 	return (
@@ -63,6 +86,16 @@ const PostRide = () => {
 				padding: theme.spacing(2),
 			}}
 		>
+			<Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>
+				<Alert
+					onClose={handleClose}
+					severity="success"
+					variant="filled"
+					sx={{ width: '100%' }}
+				>
+					{message}
+				</Alert>
+			</Snackbar>
 			<Box
 				sx={{
 					width: '100%',
@@ -195,9 +228,7 @@ const PostRide = () => {
 							<MenuItem value="" disabled>
 								Select Vehicle
 							</MenuItem>
-							<MenuItem value="Lamborghini">Lamborghini</MenuItem>
-							<MenuItem value="Rolls Royce">Rolls Royce</MenuItem>
-							<MenuItem value="Mercedes">Mercedes</MenuItem>
+							{vehiclesList?.map(item => (<MenuItem key={item.id} value={item.id}>{item.model}</MenuItem>))}
 						</Select>
 					</Grid>
 				</Grid>

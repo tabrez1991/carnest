@@ -12,9 +12,9 @@ import {
 import { useTheme } from '@mui/system';
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useLoginUserMutation } from '../../services/userAuthApi';
+import { useLoginUserMutation, useUserProfileMutation } from '../../services/userAuthApi';
 import { getToken, storeToken } from '../../services/LocalStorageService';
-import { setUserToken } from '../../features/authSlice';
+import { setProfile, setUserToken } from '../../features/authSlice';
 
 const Login = () => {
   const theme = useTheme();
@@ -23,34 +23,52 @@ const Login = () => {
   const [serverError, setServerError] = useState({});
 
   const [loginUser, { isLoading }] = useLoginUserMutation();
+  const [userProfile] = useUserProfileMutation();
 
   const dispatch = useDispatch()
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Extracting data from the form
     const data = new FormData(e.currentTarget);
     const actualData = {
-      email: data.get('email'),
-      password: data.get('password'),
+      email: data.get("email"),
+      password: data.get("password"),
     };
-
-    const res = await loginUser(actualData);
-    // console.log(res)
-    if (res.error) {
-      setServerError(res.error.data.errors);
-    } else if (res.data) {
-      storeToken(res.data.token);
-      let {access_token} = getToken()
-      dispatch(setUserToken({access_token:access_token}))
-      navigate('/search');
+  
+    try {
+      // Login user
+      const res = await loginUser(actualData);
+  
+      if (res.error) {
+        setServerError(res.error.data.errors); // Display login error
+        return; // Exit early on error
+      }
+  
+      if (res.data) {
+        // Store the token and update Redux state
+        storeToken(res.data.token);
+        const { access_token } = getToken();
+        dispatch(setUserToken({ access_token }));
+  
+        // Fetch user profile using the access token
+        const result = await userProfile(access_token);
+  
+        if (result.error) {
+          setServerError(result.error.data.errors); // Display profile fetch error
+        } else if (result.data) {
+          // Set user profile in Redux and navigate to the search page
+          dispatch(setProfile({ profile: result.data }));
+          navigate("/search");
+        }
+      }
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+      setServerError([{ msg: "An unexpected error occurred. Please try again later." }]);
     }
-
-  }
-
-  // let access_token = getToken()
-  // useEffect(() => {
-  //   dispatch(setUserToken({access_token:access_token}))
-  // }, [access_token, dispatch])
+  };
+  
 
   return (
     <Box
@@ -115,7 +133,7 @@ const Login = () => {
           helperText={serverError.password ? serverError.password[0] : ''}
         />
         <Box>
-        {isLoading ? <CircularProgress /> : <Button
+          {isLoading ? <CircularProgress /> : <Button
             type="submit"
             variant="contained"
             fullWidth

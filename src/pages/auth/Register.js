@@ -8,6 +8,8 @@ import {
   Checkbox,
   FormControlLabel,
   Alert,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useTheme } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
@@ -16,9 +18,26 @@ import { storeToken } from '../../services/LocalStorageService';
 
 const Register = () => {
   const theme = useTheme();
+
   const navigate = useNavigate();
+
   const [serverError, setServerError] = useState({});
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    password: "",
+    password2: "",
+    terms_and_conditions_accepted: false,
+    role: "",
+  });
+
   const [registerUser, { isLoading }] = useRegisterUserMutation();
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +50,7 @@ const Register = () => {
       password: data.get('password'),
       password2: data.get('password2'),
       terms_and_conditions_accepted: data.get('terms_and_conditions_accepted') === 'true',
+      role: data.get('role'),
     };
     // console.log(actualData)
 
@@ -99,6 +119,37 @@ const Register = () => {
             helperText={serverError.last_name ? serverError.last_name[0] : ''}
           />
         </Box>
+        <Box display="flex" gap={1} >
+          <Select
+            fullWidth
+            required
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            displayEmpty
+            sx={{ mt: 2, mb: 2, textAlign: "left" }}
+            variant="outlined"
+            error={Boolean(serverError.role)}
+            helperText={serverError.role ? serverError.role[0] : ''}
+          >
+            <MenuItem value="" disabled>
+              Select Role
+            </MenuItem>
+            <MenuItem value="Passenger">Passenger</MenuItem>
+            <MenuItem value="Driver">Driver</MenuItem>
+          </Select>
+          <TextField
+            name="phone_number"
+            label="Mobile Number"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            required
+            error={Boolean(serverError.phone_number)}
+            helperText={serverError.phone_number ? serverError.phone_number[0] : ''}
+          />
+        </Box>
 
         <TextField
           name="email"
@@ -110,16 +161,7 @@ const Register = () => {
           error={Boolean(serverError.email)}
           helperText={serverError.email ? serverError.email[0] : ''}
         />
-        <TextField
-          name="phone_number"
-          label="Mobile Number"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          required
-          error={Boolean(serverError.phone_number)}
-          helperText={serverError.phone_number ? serverError.phone_number[0] : ''}
-        />
+
         <TextField
           name="password"
           label="Password"
@@ -151,6 +193,7 @@ const Register = () => {
             {serverError.terms_and_conditions_accepted[0]}
           </Typography>
         )}
+
 
         <Button
           type="submit"

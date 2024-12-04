@@ -14,19 +14,13 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useTheme } from '@mui/system';
+import { useDispatch, useSelector } from "react-redux";
+import { useCreateVehicleMutation } from "../services/apiService";
 
 const Vehicles = () => {
 	const theme = useTheme();
 
-	const [vehicles, setVehicles] = useState([
-		{
-			make: "Honda",
-			model: "Civic",
-			plateNo: "ABCD123",
-			year: "2024",
-			color: "White",
-		},
-	]);
+	const [vehicles, setVehicles] = useState([]);
 	const [newVehicle, setNewVehicle] = useState({
 		make: "",
 		model: "",
@@ -35,13 +29,38 @@ const Vehicles = () => {
 		color: "",
 	});
 
+	const { access_token, profile } = useSelector((state) => state.auth);
+	const { vehiclesList } = useSelector((state) => state.apiSlice || { vehiclesList: [] });
+	const [createVehicle, { isLoading }] = useCreateVehicleMutation();
+
+	console.log(vehiclesList)
+	const dispatch = useDispatch();
+
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 		setNewVehicle({ ...newVehicle, [name]: value });
 	};
 
-	const handleAddVehicle = () => {
-		setVehicles([...vehicles, newVehicle]);
+	const handleAddVehicle = async () => {
+		try {
+			const actualData = {
+				owner: profile?.id,
+				make: newVehicle?.make,
+				model: newVehicle.model,
+				year: newVehicle.year,
+				plate_number: newVehicle.plateNo,
+				color: newVehicle.color,
+				number_of_seats: 2
+			}
+
+			const res = await createVehicle({ actualData, access_token })
+			if (res.error) {
+				console.error(res.error.data.errors); // Display login error
+				return; // Exit early on error
+			}
+		} catch (error) {
+			console.error(error)
+		}
 		setNewVehicle({ make: "", model: "", plateNo: "", year: "", color: "" });
 	};
 
@@ -59,7 +78,10 @@ const Vehicles = () => {
 				height: '100vh',
 				backgroundColor: '#f0f2f5',
 				padding: theme.spacing(2),
-			}}>
+				overflowY: 'scroll',
+				pt: 8
+			}}
+		>
 			{/* Main Content */}
 			<Box
 				sx={{
@@ -70,7 +92,8 @@ const Vehicles = () => {
 					backgroundColor: '#FFFFFF',
 					boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
 					textAlign: 'center',
-				}}>
+				}}
+			>
 				<Typography variant="h4" align="center" sx={{ p: 2, fontWeight: "bold", color: "#FF6436" }} gutterBottom>
 					Vehicles
 				</Typography>
@@ -89,11 +112,11 @@ const Vehicles = () => {
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{vehicles.map((vehicle, index) => (
+							{vehiclesList.map((vehicle, index) => (
 								<TableRow key={index}>
 									<TableCell>{vehicle.make}</TableCell>
 									<TableCell>{vehicle.model}</TableCell>
-									<TableCell>{vehicle.plateNo}</TableCell>
+									<TableCell>{vehicle.plate_number}</TableCell>
 									<TableCell>{vehicle.year}</TableCell>
 									<TableCell>{vehicle.color}</TableCell>
 									<TableCell sx={{ display: "flex" }}>

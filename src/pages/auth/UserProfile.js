@@ -11,18 +11,20 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useTheme } from '@mui/system';
+import { useSelector } from "react-redux";
 
 const UserProfile = () => {
 	const theme = useTheme();
+	const { profile } = useSelector((state) => state.auth);
 
 	const [user, setUser] = useState({
-		firstName: "abcd",
-		lastName: "abcd",
-		email: "abcd@gmail.com",
-		phone: "abcd",
-		address: "cyklcujvhjhbkv",
-		idType: "frfrw",
-		idNumber: "gerg",
+		firstName: profile?.first_name,
+		lastName: profile?.last_name,
+		email: profile?.email,
+		phone: profile?.phone_number,
+		address: profile?.address,
+		idType: profile?.idType,
+		idNumber: profile?.idNumber,
 	});
 
 	const handleInputChange = (e) => {
@@ -62,7 +64,7 @@ const UserProfile = () => {
 					User Profile
 				</Typography>
 				<Box sx={{ display: "flex", justifyContent: "center", marginBottom: 2 }}>
-					<Avatar sx={{ width: 100, height: 100 }}>A</Avatar>
+					<Avatar sx={{ width: 100, height: 100 }}>{user?.firstName?.split('')[0]}</Avatar>
 				</Box>
 				<Grid container spacing={2}>
 					<Grid size={6}>
