@@ -6,11 +6,20 @@ import MakeReservation from "../components/MakeReservation";
 import { useSearchRidesMutation } from "../services/apiService";
 import { useDispatch, useSelector } from "react-redux";
 import { setAvailableSeats } from "../features/apiSlice";
+import LocationSearchInput from "../components/LocationSearchInput";
 
 
 const Search = () => {
 	const theme = useTheme();
 
+	const [formData, setFormData] = useState({
+		going_from_lat: "",
+		going_from_lng: "",
+		going_to_lat: "",
+		going_to_lng: "",
+		date: "",
+		seats: ""
+	});
 	const [serverError, setServerError] = useState('');
 	const [showSearch, setShowSearch] = useState(true);
 	const [showAvailable, setShowAvailable] = useState(false);
@@ -23,12 +32,13 @@ const Search = () => {
 
 	const handleSearch = async (e) => {
 		e.preventDefault();
-		const data = new FormData(e.currentTarget);
 		const actualData = {
-			from: data.get('from'),
-			to: data.get('goingTo'),
-			date: data.get('date'),
-			seats: data.get('noOfPassengers'),
+			going_from_lat: formData.going_from_lat,
+			going_from_lng: formData.going_from_lng,
+			going_to_lat: formData.going_to_lat,
+			going_to_lng: formData.going_to_lng,
+			date: formData.date,
+			seats: formData.seats,
 			token: access_token
 		};
 
@@ -53,6 +63,7 @@ const Search = () => {
 	}
 
 	const handleBack = (path) => {
+		console.log(path)
 		if (path === 'available') {
 			setShowSearch(true);
 			setShowAvailable(false);
@@ -64,6 +75,15 @@ const Search = () => {
 		}
 	}
 
+	const handleLatLng = (e, name) => {
+		console.log(e, name)
+		if (name === 'from') {
+			setFormData((prev) => ({ ...prev, going_from_lat: e.lat, going_from_lng: e.lng }))
+		} else if (name === 'goingTo') {
+			setFormData((prev) => ({ ...prev, going_to_lat: e.lat, going_to_lng: e.lng }))
+		}
+	}
+
 	return (
 		<Box sx={{
 			height: '90vh',
@@ -71,7 +91,7 @@ const Search = () => {
 			padding: theme.spacing(2),
 		}}>
 			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
-			{showMakeReservation && <MakeReservation />}
+			{showMakeReservation && <MakeReservation handleBack={handleBack}/>}
 			{showSearch && <Box
 				sx={{
 					display: 'flex',
@@ -100,24 +120,8 @@ const Search = () => {
 					<Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
 						Search for a ride
 					</Typography>
-					<TextField
-						fullWidth
-						required
-						id="from"
-						name="from"
-						label="From"
-						variant="outlined"
-						margin="normal"
-					/>
-					<TextField
-						fullWidth
-						required
-						id="goingTo"
-						name="goingTo"
-						label="Going To"
-						variant="outlined"
-						margin="normal"
-					/>
+					<LocationSearchInput id="from" name="from" label="From" handleLatLng={handleLatLng} />
+					<LocationSearchInput id="goingTo" name="goingTo" label="Going To" handleLatLng={handleLatLng} />
 					<TextField
 						fullWidth
 						required
@@ -127,7 +131,7 @@ const Search = () => {
 						label="Date"
 						variant="outlined"
 						margin="normal"
-
+						onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
 					/>
 					<TextField
 						fullWidth
@@ -137,6 +141,7 @@ const Search = () => {
 						label="No of passengers"
 						variant="outlined"
 						margin="normal"
+						onChange={(e) => setFormData((prev) => ({ ...prev, seats: e.target.value }))}
 					/>
 					<Box>
 						{isLoading ? <CircularProgress /> : <Button

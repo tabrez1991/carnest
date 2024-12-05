@@ -23,7 +23,6 @@ const Login = () => {
   const [serverError, setServerError] = useState({});
 
   const [loginUser, { isLoading }] = useLoginUserMutation();
-  const [userProfile] = useUserProfileMutation();
 
   const dispatch = useDispatch()
 
@@ -52,16 +51,16 @@ const Login = () => {
         const { access_token } = getToken();
         dispatch(setUserToken({ access_token }));
   
-        // Fetch user profile using the access token
-        const result = await userProfile(access_token);
+        // // Fetch user profile using the access token
+        // const result = await userProfile(access_token);
   
-        if (result.error) {
-          setServerError(result.error.data.errors); // Display profile fetch error
-        } else if (result.data) {
-          // Set user profile in Redux and navigate to the search page
-          dispatch(setProfile({ profile: result.data }));
+        // if (result.error) {
+        //   setServerError(result.error.data.errors); // Display profile fetch error
+        // } else if (result.data) {
+        //   // Set user profile in Redux and navigate to the search page
+        //   dispatch(setProfile({ profile: result.data }));
           navigate("/search");
-        }
+        // }
       }
     } catch (error) {
       console.error("An unexpected error occurred:", error);

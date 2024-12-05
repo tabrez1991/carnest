@@ -6,9 +6,9 @@ export const apiService = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://nasinghall.pythonanywhere.com/api/' }),
   endpoints: (builder) => ({
     searchRides: builder.mutation({
-      query: ({ seats, from, to, token }) => {
+      query: ({ going_from_lat, going_from_lng, going_to_lat, going_to_lng, date, seats, token }) => {
         return {
-          url: `rides/?available_seats=${seats}&going_from=${from}&going_to=${to}`,
+          url: `rides/?available_seats=${seats}&going_from_lat=${going_from_lat}&going_from_lng=${going_from_lng}&going_to_lat=${going_to_lat}&going_to_lng=${going_to_lng}&date=${date}`,
           method: 'GET',
           headers: {
             'Content-type': 'application/json',
