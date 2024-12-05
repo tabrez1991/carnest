@@ -43,8 +43,7 @@ const AvailableRides = (props) => {
   const { handleBook, handleBack } = props;
 
   const { availableRides } = useSelector((state) => state.apiSlice);
-
-  console.log(availableRides)
+  console.log("availableRides", availableRides)
 
   const { count, rides } = availableRides;
 
@@ -111,7 +110,7 @@ const AvailableRides = (props) => {
                 padding: 2,
                 marginBottom: 2,
                 cursor: "pointer",
-                border: selectedRide.id === ride.id ? "2px solid #FF6436" : "1px solid #ddd",
+                border: selectedRide?.id === ride?.id ? "2px solid #FF6436" : "1px solid #ddd",
               }}
               onClick={() => handleSelectRide(ride)}
             >

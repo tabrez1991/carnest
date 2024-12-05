@@ -4,6 +4,7 @@ import { Alert, Box, Button, CircularProgress, MenuItem, Select, Snackbar, TextF
 import Grid from '@mui/material/Grid2';
 import { usePostRideMutation } from "../services/apiService";
 import { useSelector } from "react-redux";
+import DateTimeInput from "../components/DateTimeInput";
 
 const PostRide = () => {
 	const theme = useTheme();
@@ -47,7 +48,7 @@ const PostRide = () => {
 			// goingFromWithinDistance: data.get('goingFromWithinDistance'),
 			going_to: data.get('goingTo'),
 			// goingToWithinDistance: data.get('goingToWithinDistance'),
-			date_time: data.get('dateTime'),
+			date_time: formData.dateTime,
 			price_per_seat: data.get('pricePerSeat'),
 			// availableNoOfSeats: data.get('availableNoOfSeats'),
 			vehicle: 1,
@@ -73,6 +74,10 @@ const PostRide = () => {
 				rideDescription: ""
 			})
 		}
+	}
+
+	const handleDateTime = (val) => {
+		setFormData((prev) => ({ ...prev, dateTime: val }))
 	}
 
 	return (
@@ -170,7 +175,16 @@ const PostRide = () => {
 				</Grid>
 				<Grid container spacing={2}>
 					<Grid size={6}>
-						<TextField
+						<Box sx={{ mt: 2, width:"100%" }}>
+							<DateTimeInput
+								id="dateTime"
+								name="dateTime"
+								handleDateTime={handleDateTime}
+								serverError={Boolean(serverError.dateTime)}
+								helperText={serverError.dateTime ? serverError.dateTime[0] : ''}
+							/>
+						</Box>
+						{/* <TextField
 							fullWidth
 							required
 							id="dateTime"
@@ -181,7 +195,7 @@ const PostRide = () => {
 							margin="normal"
 							error={Boolean(serverError.dateTime)}
 							helperText={serverError.dateTime ? serverError.dateTime[0] : ''}
-						/>
+						/> */}
 					</Grid>
 					<Grid size={6}>
 						<TextField

@@ -22,8 +22,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to={access_token ? "/search" : "/login"} />}/>
-            
+            <Route index element={<Navigate to={access_token ? "/search" : "/login"} />} />
+
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -31,7 +31,7 @@ function App() {
             <Route path="/send-reset-password-email" element={<SendPasswordResetEmail />} />
             <Route path="api/user/reset/:id/:token" element={<ResetPassword />} />
             <Route path="/userprofile" element={<UserProfile />} />
-            
+
             {/* Protected routes */}
             <Route path="/search" element={access_token ? <Search /> : <Navigate to="/login" />} />
             <Route path="/postride" element={access_token ? <PostRide /> : <Navigate to="/login" />} />
