@@ -13,8 +13,10 @@ const Search = () => {
 	const theme = useTheme();
 
 	const [formData, setFormData] = useState({
+		going_from: "",
 		going_from_lat: "",
 		going_from_lng: "",
+		going_to: "",
 		going_to_lat: "",
 		going_to_lng: "",
 		date: "",
@@ -84,6 +86,15 @@ const Search = () => {
 		}
 	}
 
+	const handleAddress = (e, name) => {
+		console.log(e, name)
+		if (name === 'from') {
+			setFormData((prev) => ({ ...prev, going_from: e }))
+		} else if (name === 'goingTo') {
+			setFormData((prev) => ({ ...prev, going_to: e }))
+		}
+	};
+
 	return (
 		<Box sx={{
 			height: '90vh',
@@ -91,7 +102,7 @@ const Search = () => {
 			padding: theme.spacing(2),
 		}}>
 			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
-			{showMakeReservation && <MakeReservation handleBack={handleBack}/>}
+			{showMakeReservation && <MakeReservation handleBack={handleBack} />}
 			{showSearch && <Box
 				sx={{
 					display: 'flex',
@@ -120,8 +131,8 @@ const Search = () => {
 					<Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
 						Search for a ride
 					</Typography>
-					<LocationSearchInput id="from" name="from" label="From" handleLatLng={handleLatLng} />
-					<LocationSearchInput id="goingTo" name="goingTo" label="Going To" handleLatLng={handleLatLng} />
+					<LocationSearchInput id="from" name="from" label="From" value={formData.going_from} handleLatLng={handleLatLng} handleAddress={handleAddress} />
+					<LocationSearchInput id="goingTo" name="goingTo" label="Going To" value={formData.going_to}  handleLatLng={handleLatLng} handleAddress={handleAddress} />
 					<TextField
 						fullWidth
 						required

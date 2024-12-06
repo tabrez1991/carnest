@@ -1,21 +1,19 @@
 import { MenuItem, TextField } from '@mui/material';
-import React, { useState } from 'react';
+import React from 'react';
 import PlacesAutocomplete, {
   geocodeByAddress,
   getLatLng,
 } from 'react-places-autocomplete';
 
 const LocationSearchInput = (props) => {
-  const { id, name, label, handleLatLng, handleAddress } = props
-  const [address, setAddress] = useState('');
+  const { id, name, label, value, handleLatLng, handleAddress } = props
 
   const handleChange = (newAddress) => {
-    setAddress(newAddress);
+    handleAddress(newAddress, name);
   };
 
   const handleSelect = (selectedAddress) => {
-    setAddress(selectedAddress);
-    handleAddress(selectedAddress);
+    handleAddress(selectedAddress, name);
     geocodeByAddress(selectedAddress)
       .then((results) => getLatLng(results[0]))
       .then((latLng) => handleLatLng(latLng, name))
@@ -24,7 +22,7 @@ const LocationSearchInput = (props) => {
 
   return (
     <PlacesAutocomplete
-      value={address}
+      value={value}
       onChange={handleChange}
       onSelect={handleSelect}
     >
@@ -33,6 +31,7 @@ const LocationSearchInput = (props) => {
           <TextField
             fullWidth
             required
+            value={value}
             id={id}
             name={name}
             label={label}

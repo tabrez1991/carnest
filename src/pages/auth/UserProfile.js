@@ -61,8 +61,10 @@ const UserProfile = () => {
 		}
 	};
 
-	const handleAddress = (e) => {
-		setUser((prev) => ({ ...prev, address: e }));
+	const handleAddress = (e, name) => {
+		if (name === "address") {
+			setUser((prev) => ({ ...prev, address: e }));
+		}
 	};
 
 	const handleClose = (event, reason) => {
@@ -191,6 +193,7 @@ const UserProfile = () => {
 						id="address"
 						name="address"
 						label="Address"
+						value={user.address}
 						handleLatLng={handleLatLng}
 						handleAddress={handleAddress}
 					/>
