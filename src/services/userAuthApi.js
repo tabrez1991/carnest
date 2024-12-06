@@ -78,8 +78,21 @@ export const userAuthApi = createApi({
         }
       }
     }),
+    updateUserProfile: builder.mutation({
+      query: ({actualData, access_token, user}) => {
+        return {
+          url: `/profile/${user}/`,
+          method: 'PATCH',
+          body: actualData,
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
   }),
 });
 
-export const { useRegisterUserMutation, useLoginUserMutation, useChangeUserPasswordMutation, useSendPasswordResetEmailMutation, useResetPasswordMutation, useUserProfileMutation
+export const { useRegisterUserMutation, useLoginUserMutation, useChangeUserPasswordMutation, useSendPasswordResetEmailMutation, useResetPasswordMutation, useUserProfileMutation, useUpdateUserProfileMutation
 } = userAuthApi

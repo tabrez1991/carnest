@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid2';
 import { usePostRideMutation } from "../services/apiService";
 import { useSelector } from "react-redux";
 import DateTimeInput from "../components/DateTimeInput";
+import LocationSearchInput from "../components/LocationSearchInput";
 
 const PostRide = () => {
 	const theme = useTheme();
@@ -13,9 +14,11 @@ const PostRide = () => {
 	const [message, setMessage] = useState("");
 	const [formData, setFormData] = useState({
 		goingFrom: "",
-		goingFromWithinDistance: "",
+		goingFromLat: "",
+		goingFromLng: "",
 		goingTo: "",
-		goingToWithinDistance: "",
+		goingToLat: "",
+		goingToLng: "",
 		dateTime: "",
 		pricePerSeat: "",
 		availableNoOfSeats: "",
@@ -42,17 +45,20 @@ const PostRide = () => {
 	const handlePostRide = async (e) => {
 		e.preventDefault();
 		const data = new FormData(e.currentTarget);
+		console.log(formData)
 		const actualData = {
 			driver: profile?.id,
-			going_from: data.get('goingFrom'),
-			// goingFromWithinDistance: data.get('goingFromWithinDistance'),
-			going_to: data.get('goingTo'),
-			// goingToWithinDistance: data.get('goingToWithinDistance'),
+			going_from: formData.goingFrom,
+			going_from_lat: formData.goingFromLat,
+			going_from_lng: formData.goingFromLng,
+			going_to: formData.goingTo,
+			going_to_lat: formData.goingToLat,
+			going_to_lng: formData.goingToLng,
 			date_time: formData.dateTime,
-			price_per_seat: data.get('pricePerSeat'),
-			// availableNoOfSeats: data.get('availableNoOfSeats'),
-			vehicle: 1,
-			ride_description: data.get('rideDescription'),
+			price_per_seat: formData.pricePerSeat,
+			availableNoOfSeats: formData.availableNoOfSeats,
+			vehicle: formData.vehicle,
+			ride_description: formData.rideDescription,
 		};
 
 		const res = await postRide({ actualData, access_token });
@@ -79,6 +85,22 @@ const PostRide = () => {
 	const handleDateTime = (val) => {
 		setFormData((prev) => ({ ...prev, dateTime: val }))
 	}
+
+	const handleLatLng = (e, name) => {
+		if (name === "goingFrom") {
+			setFormData((prev) => ({ ...prev, goingFromLat: e.lat, goingFromLng: e.lng }));
+		} else if (name === "goingTo") {
+			setFormData((prev) => ({ ...prev, goingToLat: e.lat, goingToLng: e.lng }));
+		}
+	};
+
+	const handleAddress = (e, name) => {
+		if (name === "goingFrom") {
+			setFormData((prev) => ({ ...prev, goingFrom: e }));
+		} else if (name === "goingTo") {
+			setFormData((prev) => ({ ...prev, goingTo: e }));
+		}
+	};
 
 	return (
 		<Box
@@ -121,32 +143,13 @@ const PostRide = () => {
 				</Typography>
 				<Grid container spacing={2}>
 					<Grid size={6}>
-						<TextField
-							fullWidth
-							required
-							id="goingFrom"
-							name="goingFrom"
-							label="Going From"
-							variant="outlined"
-							margin="normal"
-							error={Boolean(serverError.goingFrom)}
-							helperText={serverError.goingFrom ? serverError.goingFrom[0] : ''}
-						/>
+						<LocationSearchInput id="goingFrom" name="goingFrom" label="Going From" value={formData.goingFrom} handleLatLng={handleLatLng} handleAddress={handleAddress} />
 					</Grid>
 					<Grid size={6}>
-						<TextField
-							fullWidth
-							id="goingFromWithinDistance"
-							name="goingFromWithinDistance"
-							label="Within Distance"
-							variant="outlined"
-							margin="normal"
-							error={Boolean(serverError.goingFromWithinDistance)}
-							helperText={serverError.goingFromWithinDistance ? serverError.goingFromWithinDistance[0] : ''}
-						/>
+						<LocationSearchInput id="goingTo" name="goingTo" label="Going To" value={formData.goingTo} handleLatLng={handleLatLng} handleAddress={handleAddress} />
 					</Grid>
 				</Grid>
-				<Grid container spacing={2}>
+				{/* <Grid container spacing={2}>
 					<Grid size={6}>
 						<TextField
 							fullWidth
@@ -172,13 +175,14 @@ const PostRide = () => {
 							helperText={serverError.goingToWithinDistance ? serverError.goingToWithinDistance[0] : ''}
 						/>
 					</Grid>
-				</Grid>
+				</Grid> */}
 				<Grid container spacing={2}>
 					<Grid size={6}>
-						<Box sx={{ mt: 2, width:"100%" }}>
+						<Box sx={{ mt: 2, width: "100%" }}>
 							<DateTimeInput
 								id="dateTime"
 								name="dateTime"
+								value={formData.dateTime}
 								handleDateTime={handleDateTime}
 								serverError={Boolean(serverError.dateTime)}
 								helperText={serverError.dateTime ? serverError.dateTime[0] : ''}
@@ -201,11 +205,13 @@ const PostRide = () => {
 						<TextField
 							fullWidth
 							required
+							value={formData.pricePerSeat}
 							id="pricePerSeat"
 							name="pricePerSeat"
 							label="Price Per Seat"
 							variant="outlined"
 							margin="normal"
+							onChange={(e)=>setFormData((prev) => ({ ...prev, pricePerSeat: e.target.value }))}
 							error={Boolean(serverError.pricePerSeat)}
 							helperText={serverError.pricePerSeat ? serverError.pricePerSeat[0] : ''}
 						/>
@@ -221,6 +227,8 @@ const PostRide = () => {
 							label="Available No. Seats"
 							variant="outlined"
 							margin="normal"
+							value={formData.availableNoOfSeats}
+							onChange={(e)=>setFormData((prev) => ({ ...prev, availableNoOfSeats: e.target.value }))}
 							error={Boolean(serverError.availableNoOfSeats)}
 							helperText={serverError.availableNoOfSeats ? serverError.availableNoOfSeats[0] : ''}
 						/>
@@ -256,6 +264,8 @@ const PostRide = () => {
 					label="Ride Description"
 					variant="outlined"
 					margin="normal"
+					value={formData.rideDescription}
+					onChange={(e)=>setFormData((prev) => ({ ...prev, rideDescription: e.target.value }))}
 					error={Boolean(serverError.rideDescription)}
 					helperText={serverError.rideDescription ? serverError.rideDescription[0] : ''}
 				/>
