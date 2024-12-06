@@ -6,7 +6,7 @@ import PlacesAutocomplete, {
 } from 'react-places-autocomplete';
 
 const LocationSearchInput = (props) => {
-  const { id, name, label, handleLatLng } = props
+  const { id, name, label, handleLatLng, handleAddress } = props
   const [address, setAddress] = useState('');
 
   const handleChange = (newAddress) => {
@@ -15,6 +15,7 @@ const LocationSearchInput = (props) => {
 
   const handleSelect = (selectedAddress) => {
     setAddress(selectedAddress);
+    handleAddress(selectedAddress);
     geocodeByAddress(selectedAddress)
       .then((results) => getLatLng(results[0]))
       .then((latLng) => handleLatLng(latLng, name))
