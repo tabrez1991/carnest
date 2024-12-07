@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Box,
 	TextField,
@@ -8,8 +8,11 @@ import {
 	Snackbar,
 	Alert,
 	CircularProgress,
+	Select,
+	MenuItem,
 } from "@mui/material";
 import Grid from '@mui/material/Grid2';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from "@mui/system";
 import { useDispatch, useSelector } from "react-redux";
 import LocationSearchInput from "../../components/LocationSearchInput";
@@ -18,22 +21,25 @@ import { setProfile } from "../../features/authSlice";
 
 const UserProfile = () => {
 	const theme = useTheme();
-	const { profile, access_token } = useSelector((state) => state.auth);
+	const { profile, access_token, govtIdTypes } = useSelector((state) => state.auth);
 
 	const [open, setOpen] = useState(false);
 	const [message, setMessage] = useState("");
+	const [avtarChange, setAvatarChange] = useState(false);
+	const [newAvatar, setNewAvatar] = useState(null);
 	const [severity, setSeverity] = useState("success")
+	const [isEmailVerified, setIsEmailVerified] = useState(true)
 	const [user, setUser] = useState({
-		avatar: profile.avatar,
+		avatar: profile.profile_picture,
 		firstName: profile?.first_name,
 		lastName: profile?.last_name,
 		email: profile?.email,
 		phone: profile?.phone_number,
 		address: profile?.address,
-		addressLat: profile?.addressLat,
-		addressLng: profile?.addressLng,
-		idType: profile?.idType,
-		idNumber: profile?.idNumber,
+		addressLat: profile?.address_lat,
+		addressLng: profile?.address_lng,
+		idType: profile?.government_id_type,
+		idNumber: profile?.government_id_number,
 	});
 
 	const [updateUserProfile, { isLoading }] = useUpdateUserProfileMutation();
@@ -50,9 +56,11 @@ const UserProfile = () => {
 		if (file) {
 			const reader = new FileReader();
 			reader.onload = () => {
-				setUser((prev) => ({ ...prev, avatar: reader.result }));
+				setNewAvatar(reader.result);
 			};
 			reader.readAsDataURL(file);
+			setUser((prev) => ({ ...prev, avatar: file })); // Save the file
+			setAvatarChange(true)
 		}
 	};
 
@@ -76,22 +84,68 @@ const UserProfile = () => {
 	};
 
 	const handleSaveChanges = async () => {
-		console.log("User Data Saved:", user);
-		const { id } = profile
+		try {
+			console.log("User Data Saved:", user);
 
-		const res = await updateUserProfile({ actualData: user, access_token, user: id });
-		console.log(res)
-		if (res.error) {
-			setMessage(res.error.data.errors);
+			const { id } = profile; // Extracting the profile ID
+			const data = new FormData();
+
+			// Append profile picture to FormData
+			if (user.avatar && avtarChange) {
+				data.append("profile_picture", user.avatar);
+			}
+
+			// Append other user details to FormData
+			data.append("address", user.address);
+			data.append("addressLat", user.addressLat);
+			data.append("addressLng", user.addressLng);
+			data.append("email", user.email);
+			data.append("first_name", user.firstName);
+			data.append("government_id_number", user.idNumber);
+			data.append("government_id_type", user.idType);
+			data.append("last_name", user.lastName);
+			data.append("phone_number", user.phone);
+
+			// API call
+			const res = await updateUserProfile({ actualData: data, access_token, user: id });
+
+			// Handle API response
+			if (res.errors) {
+				// Check if errors exist in response and display appropriate message
+				const errorMessage = res.error?.data?.errors || "Failed to save changes. Please try again.";
+				setMessage(errorMessage);
+				setSeverity("error");
+				setOpen(true);
+			} else if (res.data) {
+				setMessage("Changes saved successfully!");
+				setSeverity("success");
+				setOpen(true);
+				setAvatarChange(false)
+				dispatch(setProfile({ profile: res.data }));
+			}
+		} catch (error) {
+			// Catch any unexpected errors
+			console.error("An error occurred:", error);
+			setMessage("An unexpected error occurred. Please try again.");
+			setSeverity("error");
 			setOpen(true);
-			setSeverity("error")
-		} else if (res.data) {
-			setMessage("Changes saved successfully!");
-			setOpen(true);
-			setSeverity("success")
-			dispatch(setProfile({ profile: res.data }));
 		}
-	}
+	};
+
+	useEffect(() => {
+		setUser({
+			avatar: profile.profile_picture,
+			firstName: profile?.first_name,
+			lastName: profile?.last_name,
+			email: profile?.email,
+			phone: profile?.phone_number,
+			address: profile?.address,
+			addressLat: profile?.address_lat,
+			addressLng: profile?.address_lng,
+			idType: profile?.government_id_type,
+			idNumber: profile?.government_id_number,
+		})
+	}, [profile])
 
 	return (
 		<Box>
@@ -138,7 +192,7 @@ const UserProfile = () => {
 						<label htmlFor="avatar-upload">
 							<Avatar
 								sx={{ width: 100, height: 100, cursor: "pointer" }}
-								src={user.avatar}
+								src={avtarChange ? newAvatar : `${process.env.REACT_APP_BASE_URL}/${user.avatar}`}
 							>
 								{user?.firstName?.[0]}
 							</Avatar>
@@ -176,17 +230,22 @@ const UserProfile = () => {
 					<TextField
 						label="Email Address"
 						name="email"
+						disabled
 						value={user.email}
-						onChange={handleInputChange}
 						type="email"
 						fullWidth
 						margin="normal"
+						InputProps={{
+							endAdornment: isEmailVerified && (
+									<CheckCircleIcon sx={{ color: "green", marginLeft: 1 }} />
+							),
+					}}
 					/>
 					<TextField
 						label="Phone Number"
 						name="phone"
+						disabled
 						value={user.phone}
-						onChange={handleInputChange}
 						fullWidth
 						margin="normal"
 					/>
@@ -200,14 +259,30 @@ const UserProfile = () => {
 					/>
 					<Grid container spacing={2}>
 						<Grid item size={6}>
-							<TextField
+							<Select
+								fullWidth
+								required
+								id="idType"
+								name="idType"
+								value={user.idType}
+								onChange={handleInputChange}
+								displayEmpty
+								sx={{ mt: 2, textAlign: "left" }}
+								variant="outlined"
+							>
+								<MenuItem value={null} disabled>
+									Government ID Type
+								</MenuItem>
+								{govtIdTypes?.map(item => (<MenuItem key={item} value={item}>{item}</MenuItem>))}
+							</Select>
+							{/* <TextField
 								label="Government ID Type"
 								name="idType"
 								value={user.idType}
 								onChange={handleInputChange}
 								fullWidth
 								margin="normal"
-							/>
+							/> */}
 						</Grid>
 						<Grid item size={6}>
 							<TextField

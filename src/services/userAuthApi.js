@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 // Define a service using a base URL and expected endpoints
 export const userAuthApi = createApi({
   reducerPath: 'userAuthApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://nasinghall.pythonanywhere.com/api/user/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.REACT_APP_BASE_URL}/api/user/` }),
   endpoints: (builder) => ({
     registerUser: builder.mutation({
       query: (user) => {
@@ -67,7 +67,6 @@ export const userAuthApi = createApi({
     }),
     userProfile: builder.mutation({
       query: (access_token) => {
-        console.log(access_token)
         return {
           url: `/profile`,
           method: 'GET',
@@ -85,6 +84,17 @@ export const userAuthApi = createApi({
           method: 'PATCH',
           body: actualData,
           headers: {
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
+    getGovtIdType: builder.mutation({
+      query: (access_token) => {
+        return {
+          url: `/government-id-types/`,
+          method: 'GET',
+          headers: {
             'Content-type': 'application/json',
             'Authorization': `Bearer ${access_token}`
           }
@@ -94,5 +104,13 @@ export const userAuthApi = createApi({
   }),
 });
 
-export const { useRegisterUserMutation, useLoginUserMutation, useChangeUserPasswordMutation, useSendPasswordResetEmailMutation, useResetPasswordMutation, useUserProfileMutation, useUpdateUserProfileMutation
+export const { 
+  useRegisterUserMutation, 
+  useLoginUserMutation, 
+  useChangeUserPasswordMutation, 
+  useSendPasswordResetEmailMutation, 
+  useResetPasswordMutation, 
+  useUserProfileMutation, 
+  useUpdateUserProfileMutation,
+  useGetGovtIdTypeMutation,
 } = userAuthApi

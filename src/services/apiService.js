@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 // Define a service using a base URL and expected endpoints
 export const apiService = createApi({
   reducerPath: 'apiService',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://nasinghall.pythonanywhere.com/api/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.REACT_APP_BASE_URL}/api/` }),
   endpoints: (builder) => ({
     searchRides: builder.mutation({
       query: ({ going_from_lat, going_from_lng, going_to_lat, going_to_lng, date, seats, token }) => {

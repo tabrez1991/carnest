@@ -12,9 +12,9 @@ import {
 import { useTheme } from '@mui/system';
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useLoginUserMutation, useUserProfileMutation } from '../../services/userAuthApi';
+import { useLoginUserMutation } from '../../services/userAuthApi';
 import { getToken, storeToken } from '../../services/LocalStorageService';
-import { setProfile, setUserToken } from '../../features/authSlice';
+import { setUserToken } from '../../features/authSlice';
 
 const Login = () => {
   const theme = useTheme();

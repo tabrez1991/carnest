@@ -64,6 +64,7 @@ const AvailableRides = (props) => {
 
   const handleSelectRide = (ride) => {
     setSelectedRide(ride);
+    setDirections(null)
 
     const directionsService = new window.google.maps.DirectionsService();
 
@@ -88,11 +89,11 @@ const AvailableRides = (props) => {
   };
 
   const handleClose = (event, reason) => {
-		if (reason === 'clickaway') {
-			return;
-		}
-		setOpen(false);
-	};
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
 
   const getRideDetails = async (id) => {
     const res = await getRidesById({ rideId: id, token: access_token });
@@ -164,7 +165,7 @@ const AvailableRides = (props) => {
               >
                 {ride.price_per_seat}
               </Typography>
-              {isLoading ? <CircularProgress /> : <Button
+              {isLoading && ride.id === selectedRide.id ? <Box sx={{ float: "right" }}><CircularProgress size={25} /></Box> : <Button
                 size="small"
                 variant="contained"
                 color="warning"
@@ -185,13 +186,13 @@ const AvailableRides = (props) => {
 
       {/* Right Panel */}
       <Box sx={{ width: "60%" }}>
-        <GoogleMap
+        {<GoogleMap
           center={center}
           zoom={6}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
           {directions && <DirectionsRenderer directions={directions} />}
-        </GoogleMap>
+        </GoogleMap>}
       </Box>
     </Box>
   );
