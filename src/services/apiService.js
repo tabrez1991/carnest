@@ -79,7 +79,28 @@ export const apiService = createApi({
         }
       }
     }),
+    bookRide: builder.mutation({
+      query: ({ actualData, access_token }) => {
+        return {
+          url: 'booking/',
+          method: 'POST',
+          body: actualData,
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
   }),
 });
 
-export const { useSearchRidesMutation, useGetRidesMutation, usePostRideMutation, useCreateVehicleMutation, useGetVehicleMutation, useGetRidesByIdMutation } = apiService
+export const {
+  useSearchRidesMutation,
+  useGetRidesMutation,
+  usePostRideMutation,
+  useCreateVehicleMutation,
+  useGetVehicleMutation,
+  useGetRidesByIdMutation,
+  useBookRideMutation,
+} = apiService

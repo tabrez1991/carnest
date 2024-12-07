@@ -15,28 +15,37 @@ import {
 import ChatIcon from '@mui/icons-material/Chat';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { FaArrowLeft, FaCircle, FaSquare } from "react-icons/fa";
-import { useGetRidesByIdMutation } from '../services/apiService';
+import { useBookRideMutation, useGetRidesByIdMutation } from '../services/apiService';
 import { setRideDetails } from '../features/apiSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
+import { generateSeatList } from '../helper';
 
 const CarpoolBooking = (props) => {
   const { handleBack, rideBookId } = props
 
-  const availableSeats = ['front passenger', 'back left', 'back right'];
+  const seatMapping = {
+    "front passenger": 1,
+    "back right": 2,
+    "back left": 3,
+    "middle right": 4,
+    "middle left": 5,
+    "back middle": 6,
+  };
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState("success")
 
-
-  const { access_token } = useSelector((state) => state.auth);
+  const { access_token, profile } = useSelector((state) => state.auth);
   const { rideDetails } = useSelector((state) => state.apiSlice);
 
-  const [getRidesById, { isLoading }] = useGetRidesByIdMutation();
+  console.log(rideDetails)
 
-  const dispatch = useDispatch()
+  const availableSeats = generateSeatList(4);
+
+  const [bookRide, { isLoading }] = useBookRideMutation();
 
   const toggleSeatSelection = (seat) => {
     if (selectedSeats.includes(seat)) {
@@ -45,18 +54,6 @@ const CarpoolBooking = (props) => {
       setSelectedSeats([...selectedSeats, seat]);
     }
   };
-
-  const getRideDetails = async () => {
-    const res = await getRidesById({ rideId: rideBookId, token: access_token });
-    console.log(res)
-    if (res.error) {
-      setMessage(res.error.data.errors);
-      setOpen(true);
-      setSeverity("error")
-    } else if (res.data) {
-      dispatch(setRideDetails({ data: res.data }));
-    }
-  }
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -86,9 +83,33 @@ const CarpoolBooking = (props) => {
     };
   };
 
-  useEffect(() => {
-    getRideDetails()
-  }, [])
+  const handleMakeReservation = async () => {
+    const bookedSeatNumbers = selectedSeats.map((seat) => seatMapping[seat]);
+    try {
+      const actualData = {
+        ride: rideBookId,
+        passenger: profile.id,
+        number_of_seats: rideDetails.available_seats,
+        additional_notes: rideDetails.ride_description,
+        booked_seat: bookedSeatNumbers,
+      }
+      console.log(actualData)
+      const res = await bookRide({ actualData, access_token });
+      if (res.error) {
+        setMessage(res.error.data.errors);
+        setOpen(true);
+        setSeverity("error")
+      } else if (res.data) {
+        console.log(res)
+        setMessage("Ride booked successfully");
+        setOpen(true);
+        setSeverity("success")
+        handleBack()
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
     <Box>
@@ -102,14 +123,12 @@ const CarpoolBooking = (props) => {
           {message}
         </Alert>
       </Snackbar>
-      {isLoading ? <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <CircularProgress />
-      </Box> : <Box sx={{ padding: 3, width: "100%", margin: 'auto', fontFamily: 'Roboto' }}>
+      <Box sx={{ padding: 3, width: "100%", margin: 'auto', fontFamily: 'Roboto' }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography onClick={() => handleBack('reservation')} sx={{ mr: 2 }}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>
           {/* Header */}
           <Typography variant="h6" gutterBottom>
-            {formatDate(rideDetails.date_time)}
+            {formatDate(rideDetails?.date_time)}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", width: "100%" }}>
@@ -255,13 +274,13 @@ const CarpoolBooking = (props) => {
                       sx={{
                         textTransform: "capitalize",
                         fontSize: "0.9rem",
-                        width: "40%", // Ensure two columns
+                        width: "40%", // Two columns layout
                         height: "50px",
                         bgcolor: selectedSeats.includes(seat) ? "orange" : "#dbb16459",
                         color: selectedSeats.includes(seat) ? "white" : "black",
                       }}
                     >
-
+                     
                     </Button>
                   ))}
                 </Box>
@@ -286,15 +305,19 @@ const CarpoolBooking = (props) => {
         </Box>
 
         {/* Make Reservation Button */}
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none' }}
-        >
-          Make Reservation
-        </Button>
-      </Box>}
+        <Box>
+          {isLoading ? <CircularProgress /> :
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none' }}
+              onClick={handleMakeReservation}
+            >
+              Make Reservation
+            </Button>}
+        </Box>
+      </Box>
     </Box>
   );
 };

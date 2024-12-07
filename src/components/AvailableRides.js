@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, List, ListItem, ListItemText, Divider } from "@mui/material";
+import { Box, Typography, Paper, Button, List, ListItem, ListItemText, Divider, CircularProgress } from "@mui/material";
 import { FaCarSide, FaArrowLeft } from "react-icons/fa";
 import { GoogleMap, DirectionsRenderer, useJsApiLoader } from "@react-google-maps/api";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useGetRidesByIdMutation } from "../services/apiService";
+import { setRideDetails } from "../features/apiSlice";
 
 // const rides = [
 //   {
@@ -42,14 +44,19 @@ const center = { lat: 36.7783, lng: -119.4179 }; // California center for initia
 const AvailableRides = (props) => {
   const { handleBook, handleBack } = props;
 
+  const { access_token } = useSelector((state) => state.auth);
   const { availableRides } = useSelector((state) => state.apiSlice);
-  console.log("availableRides", availableRides)
-
   const { count, rides } = availableRides;
 
   const [selectedRide, setSelectedRide] = useState(null);
   const [directions, setDirections] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [severity, setSeverity] = useState("success")
 
+  const [getRidesById, { isLoading }] = useGetRidesByIdMutation();
+
+  const dispatch = useDispatch()
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyA4DgX7hxdOnIKy30hDEi9nzft06J3V6ho", // Replace with your Google Maps API Key
@@ -80,6 +87,17 @@ const AvailableRides = (props) => {
     );
   };
 
+  const getRideDetails = async (id) => {
+    const res = await getRidesById({ rideId: id, token: access_token });
+    if (res.error) {
+      setMessage(res.error.data.errors);
+      setOpen(true);
+      setSeverity("error")
+    } else if (res.data) {
+      dispatch(setRideDetails({ data: res.data }));
+      handleBook(id)
+    }
+  }
 
   useEffect(() => {
     if (rides.length > 0) {
@@ -129,15 +147,15 @@ const AvailableRides = (props) => {
               >
                 {ride.price_per_seat}
               </Typography>
-              <Button
+              {isLoading ? <CircularProgress /> : <Button
                 size="small"
                 variant="contained"
                 color="warning"
                 sx={{ float: "right", textTransform: "capitalize" }}
-                onClick={() => handleBook(ride.id)}
+                onClick={() => getRideDetails(ride.id)}
               >
                 Book
-              </Button>
+              </Button>}
               <Divider sx={{ my: 1 }} />
               <Typography variant="body2">
                 <FaCarSide style={{ marginRight: 5 }} />
