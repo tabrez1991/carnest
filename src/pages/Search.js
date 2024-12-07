@@ -26,6 +26,7 @@ const Search = () => {
 	const [showSearch, setShowSearch] = useState(true);
 	const [showAvailable, setShowAvailable] = useState(false);
 	const [showMakeReservation, setShowMakeReservation] = useState(false);
+	const [rideBookId, setRideBookId] = useState("");
 
 	const dispatch = useDispatch()
 
@@ -58,7 +59,8 @@ const Search = () => {
 
 	}
 
-	const handleBook = () => {
+	const handleBook = (id) => {
+		setRideBookId(id);
 		setShowSearch(false);
 		setShowAvailable(false);
 		setShowMakeReservation(true);
@@ -102,7 +104,7 @@ const Search = () => {
 			padding: theme.spacing(2),
 		}}>
 			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
-			{showMakeReservation && <MakeReservation handleBack={handleBack} />}
+			{showMakeReservation && <MakeReservation handleBack={handleBack} rideBookId={rideBookId}/>}
 			{showSearch && <Box
 				sx={{
 					display: 'flex',

@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
 	vehiclesList: [],
-	availableRides: {}
+	availableRides: {},
+	rideDetails: {},
 }
 
 export const apiSlice = createSlice({
@@ -14,10 +15,13 @@ export const apiSlice = createSlice({
 		},
 		setAvailableSeats: (state, action) => {
 			state.availableRides = action.payload.data
+		},
+		setRideDetails: (state, action) => {
+			state.rideDetails = action.payload.data
 		}
 	}
 })
 
-export const { setVehiclesList, setAvailableSeats } = apiSlice.actions
+export const { setVehiclesList, setAvailableSeats, setRideDetails } = apiSlice.actions
 
 export default apiSlice.reducer

@@ -29,6 +29,18 @@ export const apiService = createApi({
         }
       }
     }),
+    getRidesById: builder.mutation({
+      query: ({ rideId, token }) => {
+        return {
+          url: `rides/${rideId}`,
+          method: 'GET',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      }
+    }),
     postRide: builder.mutation({
       query: ({ actualData, access_token }) => {
         return {
@@ -70,4 +82,4 @@ export const apiService = createApi({
   }),
 });
 
-export const { useSearchRidesMutation, useGetRidesMutation, usePostRideMutation, useCreateVehicleMutation, useGetVehicleMutation } = apiService
+export const { useSearchRidesMutation, useGetRidesMutation, usePostRideMutation, useCreateVehicleMutation, useGetVehicleMutation, useGetRidesByIdMutation } = apiService

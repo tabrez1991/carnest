@@ -134,7 +134,7 @@ const AvailableRides = (props) => {
                 variant="contained"
                 color="warning"
                 sx={{ float: "right", textTransform: "capitalize" }}
-                onClick={handleBook}
+                onClick={() => handleBook(ride.id)}
               >
                 Book
               </Button>
