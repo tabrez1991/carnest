@@ -6,7 +6,7 @@ import PlacesAutocomplete, {
 } from 'react-places-autocomplete';
 
 const LocationSearchInput = (props) => {
-  const { id, name, label, value, handleLatLng, handleAddress } = props
+  const { id, name, label, value, error, handleLatLng, handleAddress } = props
 
   const handleChange = (newAddress) => {
     handleAddress(newAddress, name);
@@ -31,6 +31,7 @@ const LocationSearchInput = (props) => {
           <TextField
             fullWidth
             required
+            error={error}
             value={value}
             id={id}
             name={name}

@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   access_token: localStorage.getItem("access_token") || null,
-  profile: {}
+  profile: {},
+  govtIdTypes: []
 }
 
 export const authSlice = createSlice({
@@ -17,10 +18,13 @@ export const authSlice = createSlice({
     },
     setProfile: (state, action) => {
       state.profile = action.payload.profile
+    },
+    setGovtIdType: (state, action) => {
+      state.govtIdTypes = action.payload.data
     }
   }
 })
 
-export const { setUserToken, unSetUserToken, setProfile } = authSlice.actions
+export const { setUserToken, unSetUserToken, setProfile, setGovtIdType } = authSlice.actions
 
 export default authSlice.reducer

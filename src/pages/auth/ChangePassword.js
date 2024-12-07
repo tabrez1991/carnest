@@ -9,7 +9,6 @@ import {
   Divider,
 } from "@mui/material";
 import { useTheme } from "@mui/system";
-import { useSelector } from "react-redux";
 import { useChangeUserPasswordMutation } from "../../services/userAuthApi";
 import { getToken } from "../../services/LocalStorageService";
 
