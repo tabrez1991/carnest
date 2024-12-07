@@ -11,30 +11,81 @@ import {
 	Paper,
 	TextField,
 	Box,
+	CircularProgress,
+	Snackbar,
+	Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useTheme } from '@mui/system';
 import { useDispatch, useSelector } from "react-redux";
-import { useCreateVehicleMutation } from "../services/apiService";
+import { useCreateVehicleMutation, useDeleteVehicleMutation, useGetVehicleMutation, useUpdateVehicleMutation } from "../services/apiService";
+import { setVehiclesList } from "../features/apiSlice";
 
 const Vehicles = () => {
 	const theme = useTheme();
 
-	const [vehicles, setVehicles] = useState([]);
+	const [open, setOpen] = useState(false);
+	const [message, setMessage] = useState("");
+	const [severity, setSeverity] = useState("success")
+	const [loader, setLoader] = useState(false)
+	const [isEdit, setIsEdit] = useState(false)
+	const [vehicleId, setVehicleId] = useState("");
 	const [newVehicle, setNewVehicle] = useState({
 		make: "",
 		model: "",
 		plateNo: "",
 		year: "",
 		color: "",
+		state: "",
+		number_of_seats: ""
 	});
 
 	const { access_token, profile } = useSelector((state) => state.auth);
 	const { vehiclesList } = useSelector((state) => state.apiSlice || { vehiclesList: [] });
 	const [createVehicle, { isLoading }] = useCreateVehicleMutation();
+	const [updatedVehicles] = useUpdateVehicleMutation();
+	const [deleteVehicle] = useDeleteVehicleMutation();
+	const [getVehicle] = useGetVehicleMutation();
 
-	console.log(vehiclesList)
 	const dispatch = useDispatch();
+
+	const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setOpen(false);
+	};
+
+	const handleEdit = (vehicle) => {
+		setIsEdit(true)
+		setVehicleId(vehicle.id);
+		setNewVehicle({
+			make: vehicle.make,
+			model: vehicle.model,
+			plateNo: vehicle.plate_number,
+			year: vehicle.year,
+			color: vehicle.color,
+			number_of_seats: vehicle.number_of_seats,
+			state: vehicle.state
+		})
+		// () => handleUpdateVehicle(vehicle.id)
+	}
+
+	const getVehiclesList = async () => {
+		try {
+			const res = await getVehicle(access_token);
+			if (res.error) {
+				console.error(res.error.data.errors); // Display login error
+				return; // Exit early on error
+			}
+			if (res.data) {
+				const { data } = res;
+				dispatch(setVehiclesList({ data }));
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	};
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -50,13 +101,16 @@ const Vehicles = () => {
 				year: newVehicle.year,
 				plate_number: newVehicle.plateNo,
 				color: newVehicle.color,
-				number_of_seats: 2
+				state: newVehicle.state,
+				number_of_seats: newVehicle.number_of_seats
 			}
 
 			const res = await createVehicle({ actualData, access_token })
 			if (res.error) {
 				console.error(res.error.data.errors); // Display login error
 				return; // Exit early on error
+			} else if (res.data) {
+				getVehiclesList()
 			}
 		} catch (error) {
 			console.error(error)
@@ -64,9 +118,64 @@ const Vehicles = () => {
 		setNewVehicle({ make: "", model: "", plateNo: "", year: "", color: "" });
 	};
 
-	const handleDeleteVehicle = (index) => {
-		const updatedVehicles = vehicles.filter((_, i) => i !== index);
-		setVehicles(updatedVehicles);
+	const handleUpdateVehicle = async () => {
+		setLoader(true)
+		try {
+			const actualData = {
+				owner: profile?.id,
+				make: newVehicle?.make,
+				model: newVehicle.model,
+				year: newVehicle.year,
+				plate_number: newVehicle.plateNo,
+				color: newVehicle.color,
+				number_of_seats: newVehicle.number_of_seats
+			}
+			const res = await updatedVehicles({ id: vehicleId, actualData, access_token })
+			if (res.error) {
+				console.error(res.error.data.errors);
+				setMessage(res.error.data.errors);
+				setOpen(true);
+				setSeverity("error")
+				setLoader(false)
+				return;
+			} else if (res.data) {
+				setIsEdit(false)
+				setVehicleId("");
+				getVehiclesList()
+				setMessage("Updated Successfully");
+				setOpen(true);
+				setSeverity("success")
+				setLoader(false)
+			}
+		} catch (error) {
+			console.error(error)
+			setLoader(false)
+		}
+		setNewVehicle({ make: "", model: "", plateNo: "", year: "", color: "", number_of_seats: "", state: "" });
+	};
+
+	const handleDeleteVehicle = async (id) => {
+		setLoader(true)
+		try {
+			const res = await deleteVehicle({ id, access_token })
+			if (res.error) {
+				console.error(res.error.data.errors);
+				setMessage(res.error.data.errors);
+				setOpen(true);
+				setSeverity("error")
+				setLoader(false)
+				return;
+			} else if (res) {
+				getVehiclesList()
+				setMessage("Delete Successfully");
+				setOpen(true);
+				setSeverity("error")
+				setLoader(false)
+			}
+		} catch (error) {
+			console.error(error)
+			setLoader(false)
+		}
 	};
 
 	return (
@@ -82,8 +191,20 @@ const Vehicles = () => {
 				pt: 8
 			}}
 		>
+			<Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>
+				<Alert
+					onClose={handleClose}
+					severity={severity}
+					variant="filled"
+					sx={{ width: '100%' }}
+				>
+					{message}
+				</Alert>
+			</Snackbar>
 			{/* Main Content */}
-			<Box
+			{isLoading ? <Box>
+				<CircularProgress />
+			</Box> : <Box
 				sx={{
 					width: '100%',
 					maxWidth: 640,
@@ -112,8 +233,10 @@ const Vehicles = () => {
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{vehiclesList.map((vehicle, index) => (
-								<TableRow key={index}>
+							{loader ? <TableRow>
+								<TableCell colSpan={7} sx={{ textAlign: "center" }}><CircularProgress /></TableCell>
+							</TableRow> : vehiclesList.map((vehicle) => (
+								<TableRow key={vehicle.id}>
 									<TableCell>{vehicle.make}</TableCell>
 									<TableCell>{vehicle.model}</TableCell>
 									<TableCell>{vehicle.plate_number}</TableCell>
@@ -122,13 +245,13 @@ const Vehicles = () => {
 									<TableCell sx={{ display: "flex" }}>
 										<Button
 											color="primary"
-											onClick={() => handleDeleteVehicle(index)}
+											onClick={() => handleEdit(vehicle)}
 										>
 											Edit
 										</Button>
 										<Button
 											color="error"
-											onClick={() => handleDeleteVehicle(index)}
+											onClick={() => handleDeleteVehicle(vehicle.id)}
 										>
 											Delete
 										</Button>
@@ -142,7 +265,7 @@ const Vehicles = () => {
 				{/* Add New Vehicle Form */}
 				<Paper elevation={3} sx={{ padding: 3 }}>
 					<Typography variant="h6" sx={{ fontWeight: 700, textAlign: "left" }} gutterBottom>
-						Add New Vehicle
+						{isEdit ? "Edit Vehicle" : "Add New Vehicle"}
 					</Typography>
 					<Grid container spacing={2}>
 						<Grid size={6}>
@@ -210,7 +333,35 @@ const Vehicles = () => {
 							/>
 						</Grid>
 					</Grid>
-					<Button
+					<Grid container spacing={2}>
+						<Grid size={12}>
+							<TextField
+								label="No of seats"
+								name="number_of_seats"
+								value={newVehicle.number_of_seats}
+								onChange={handleInputChange}
+								fullWidth
+								margin="normal"
+							/>
+						</Grid>
+					</Grid>
+					{isEdit ? <Button
+						variant="contained"
+						sx={{
+							backgroundColor: '#FF6436',
+							color: 'white',
+							marginTop: theme.spacing(2),
+							marginBottom: theme.spacing(1),
+							'&:hover': {
+								backgroundColor: '#36a420',
+							},
+							textTransform: "none"
+						}}
+						fullWidth
+						onClick={handleUpdateVehicle}
+					>
+						Edit Vehicle
+					</Button> : <Button
 						variant="contained"
 						sx={{
 							backgroundColor: '#FF6436',
@@ -226,9 +377,9 @@ const Vehicles = () => {
 						onClick={handleAddVehicle}
 					>
 						Add Vehicle
-					</Button>
+					</Button>}
 				</Paper>
-			</Box>
+			</Box>}
 		</Box>
 	);
 };

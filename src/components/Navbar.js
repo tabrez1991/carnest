@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   AppBar,
   Toolbar,
@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
 import CarnestLogo from '../assets/car-sharing-logo.png';
-import { Search, DirectionsCar, List, Message, Person } from '@mui/icons-material';
+import { Search, DirectionsCar, List, Message } from '@mui/icons-material';
 import { removeToken } from '../services/LocalStorageService';
 import { useSelector, useDispatch } from 'react-redux';
 import { setProfile, unSetUserToken } from '../features/authSlice';
@@ -63,7 +63,8 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const getVehiclesList = async () => {
+  // eslint-disable-next-line 
+  const getVehiclesList = useCallback(async () => {
     try {
       const res = await getVehicle(access_token);
       if (res.error) {
@@ -77,9 +78,10 @@ const Navbar = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [])
 
-  const getProfileDetails = async () => {
+  // eslint-disable-next-line 
+  const getProfileDetails = useCallback(async () => {
     try {
       const res = await userProfile(access_token);
       if (res.error) {
@@ -92,17 +94,19 @@ const Navbar = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, []);
 
+  // eslint-disable-next-line
   useEffect(() => {
     if (profile?.role === 'Driver') {
       getVehiclesList();
     }
-  }, [profile]);
+  }, [profile, getVehiclesList]);
 
+  // eslint-disable-next-line
   useEffect(() => {
     getProfileDetails();
-  }, [])
+  }, [getProfileDetails])
 
   return (
     <AppBar position="static" sx={{ backgroundColor: 'background.paper', borderRadius: '30px', boxShadow: 'none' }}>

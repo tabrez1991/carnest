@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, List, ListItem, ListItemText, Divider, CircularProgress } from "@mui/material";
+import { Box, Typography, Paper, Button, List, Divider, CircularProgress, Snackbar, Alert } from "@mui/material";
 import { FaCarSide, FaArrowLeft } from "react-icons/fa";
 import { GoogleMap, DirectionsRenderer, useJsApiLoader } from "@react-google-maps/api";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,7 +46,7 @@ const AvailableRides = (props) => {
 
   const { access_token } = useSelector((state) => state.auth);
   const { availableRides } = useSelector((state) => state.apiSlice);
-  const { count, rides } = availableRides;
+  const { rides } = availableRides;
 
   const [selectedRide, setSelectedRide] = useState(null);
   const [directions, setDirections] = useState(null);
@@ -87,6 +87,13 @@ const AvailableRides = (props) => {
     );
   };
 
+  const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setOpen(false);
+	};
+
   const getRideDetails = async (id) => {
     const res = await getRidesById({ rideId: id, token: access_token });
     if (res.error) {
@@ -110,6 +117,16 @@ const AvailableRides = (props) => {
 
   return (
     <Box sx={{ display: "flex", height: "88vh", backgroundColor: "#f9f9f9", marginBottom: "10px" }}>
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert
+          onClose={handleClose}
+          severity={severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
       {/* Left Panel */}
       <Box sx={{ width: "40%", padding: 2, overflowY: "auto", borderRight: "1px solid #ddd", backgroundColor: "#fff" }}>
         <Typography onClick={() => handleBack('available')}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>

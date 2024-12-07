@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,9 +15,8 @@ import {
 import ChatIcon from '@mui/icons-material/Chat';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { FaArrowLeft, FaCircle, FaSquare } from "react-icons/fa";
-import { useBookRideMutation, useGetRidesByIdMutation } from '../services/apiService';
-import { setRideDetails } from '../features/apiSlice';
-import { useDispatch, useSelector } from 'react-redux';
+import { useBookRideMutation } from '../services/apiService';
+import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { generateSeatList } from '../helper';
 
@@ -280,7 +279,7 @@ const CarpoolBooking = (props) => {
                         color: selectedSeats.includes(seat) ? "white" : "black",
                       }}
                     >
-                     
+
                     </Button>
                   ))}
                 </Box>

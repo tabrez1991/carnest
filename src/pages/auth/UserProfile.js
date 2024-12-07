@@ -7,6 +7,7 @@ import {
 	Button,
 	Snackbar,
 	Alert,
+	CircularProgress,
 } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import { useTheme } from "@mui/system";
@@ -219,7 +220,7 @@ const UserProfile = () => {
 							/>
 						</Grid>
 					</Grid>
-					<Button
+					{<Box>{isLoading ? <CircularProgress /> : <Button
 						variant="contained"
 						sx={{
 							backgroundColor: "#FF6436",
@@ -235,7 +236,8 @@ const UserProfile = () => {
 						onClick={handleSaveChanges}
 					>
 						Save Changes
-					</Button>
+					</Button>}
+					</Box>}
 				</Box>
 			</Box>
 		</Box>

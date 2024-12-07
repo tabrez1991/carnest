@@ -54,12 +54,50 @@ export const apiService = createApi({
         }
       }
     }),
+    bookRide: builder.mutation({
+      query: ({ actualData, access_token }) => {
+        return {
+          url: 'booking/',
+          method: 'POST',
+          body: actualData,
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
     createVehicle: builder.mutation({
       query: ({ actualData, access_token }) => {
         return {
           url: 'vehicle/',
           method: 'POST',
           body: actualData,
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
+    updateVehicle: builder.mutation({
+      query: ({ id, actualData, access_token }) => {
+        return {
+          url: `vehicle/${id}/`,
+          method: 'PATCH',
+          body: actualData,
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
+    deleteVehicle: builder.mutation({
+      query: ({ id, access_token }) => {
+        return {
+          url: `vehicle/${id}/`,
+          method: 'DELETE',
           headers: {
             'Content-type': 'application/json',
             'Authorization': `Bearer ${access_token}`
@@ -79,28 +117,17 @@ export const apiService = createApi({
         }
       }
     }),
-    bookRide: builder.mutation({
-      query: ({ actualData, access_token }) => {
-        return {
-          url: 'booking/',
-          method: 'POST',
-          body: actualData,
-          headers: {
-            'Content-type': 'application/json',
-            'Authorization': `Bearer ${access_token}`
-          }
-        }
-      }
-    }),
   }),
 });
 
 export const {
   useSearchRidesMutation,
   useGetRidesMutation,
-  usePostRideMutation,
-  useCreateVehicleMutation,
-  useGetVehicleMutation,
   useGetRidesByIdMutation,
+  usePostRideMutation,
   useBookRideMutation,
+  useCreateVehicleMutation,
+  useUpdateVehicleMutation,
+  useDeleteVehicleMutation,
+  useGetVehicleMutation, 
 } = apiService
