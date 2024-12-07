@@ -117,27 +117,29 @@ const Navbar = () => {
         </Box>
 
         {/* Desktop Menu Items */}
-        {!isMobile && isLoggedIn && isLoading ? <Box sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
-          <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }} />
-          <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }}/>
-          <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }}/>
-          <Skeleton variant="rectangular" width={100} height={40} />
-        </Box> : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                style={({ isActive }) => ({
-                  margin: '0 8px', textDecoration: 'none', color: isActive ? '#FF6436' : 'black', fontWeight: isActive ? 'bold' : 'normal',
-                  display: 'flex', alignItems: 'center',
-                })}>
-                {item.icon}
-                <Typography sx={{ ml: 1 }}>{item.name}</Typography>
-              </NavLink>
-            ))}
-          </Box>
-        )}
+        {!isMobile && isLoggedIn && <Box>
+          {isLoading ?
+            <Box sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
+              <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }} />
+              <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }} />
+              <Skeleton variant="rectangular" width={100} height={40} sx={{ mr: 2 }} />
+              <Skeleton variant="rectangular" width={100} height={40} />
+            </Box> : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
+                {menuItems.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    style={({ isActive }) => ({
+                      margin: '0 8px', textDecoration: 'none', color: isActive ? '#FF6436' : 'black', fontWeight: isActive ? 'bold' : 'normal',
+                      display: 'flex', alignItems: 'center',
+                    })}>
+                    {item.icon}
+                    <Typography sx={{ ml: 1 }}>{item.name}</Typography>
+                  </NavLink>
+                ))}
+              </Box>
+            )}</Box>}
 
         {/* Login/Signup or Profile Icon */}
         {isLoggedIn ? (
@@ -189,6 +191,7 @@ const Navbar = () => {
               width: '100%',
               position: 'fixed',
               bottom: 0,
+              zIndex: 1000,
               borderTop: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.background.paper,
             }}
