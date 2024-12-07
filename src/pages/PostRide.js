@@ -44,7 +44,6 @@ const PostRide = () => {
 
 	const handlePostRide = async (e) => {
 		e.preventDefault();
-		const data = new FormData(e.currentTarget);
 		console.log(formData)
 		const actualData = {
 			driver: profile?.id,
