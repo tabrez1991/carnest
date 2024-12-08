@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   AppBar,
   Toolbar,
@@ -20,10 +20,10 @@ import CarnestLogo from '../assets/car-sharing-logo.png';
 import { Search, DirectionsCar, List, Message } from '@mui/icons-material';
 import { removeToken } from '../services/LocalStorageService';
 import { useSelector, useDispatch } from 'react-redux';
-import { setProfile, unSetUserToken } from '../features/authSlice';
-import { useGetVehicleMutation } from '../services/apiService';
-import { setVehiclesList } from '../features/apiSlice';
-import { useUserProfileMutation } from '../services/userAuthApi';
+import { setGovtIdType, setProfile, unSetUserToken } from '../features/authSlice';
+import { useGetBookedRidesMutation, useGetVehicleMutation } from '../services/apiService';
+import { setBookedRides, setVehiclesList } from '../features/apiSlice';
+import { useGetGovtIdTypeMutation, useUserProfileMutation } from '../services/userAuthApi';
 
 
 const Navbar = () => {
@@ -31,19 +31,28 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   // Access the token and derive `isLoggedIn` from Redux state
   const { access_token, profile } = useSelector((state) => state.auth);
+
   const [getVehicle] = useGetVehicleMutation();
   const [userProfile, { isLoading }] = useUserProfileMutation();
+  const [getGovtIdType] = useGetGovtIdTypeMutation();
+  const [getBookedRides] = useGetBookedRidesMutation();
+
 
   const isLoggedIn = Boolean(access_token);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
   const menuItems = [
-    { name: 'Search', path: '/search', icon: <Search /> },
+    // { name: 'Search', path: '/search', icon: <Search /> },
+    ...(profile?.role !== 'Driver' ? [{ name: 'Search', path: '/search', icon: <Search /> }] : []),
     ...(profile?.role === 'Driver' ? [{ name: 'Post Ride', path: '/PostRide', icon: <DirectionsCar /> }] : []),
-    { name: 'Your Rides', path: '/YourRides', icon: <List /> },
-    { name: 'Messages', path: '/Messages', icon: <Message /> },
+    ...(profile?.role !== 'Driver' ? [{ name: 'Your Rides', path: '/YourRides', icon: <List /> }] : []),
+    ...(profile?.role !== 'Driver' ? [{ name: 'Messages', path: '/Messages', icon: <Message /> }] : []),
+    // { name: 'Your Rides', path: '/YourRides', icon: <List /> },
+    // { name: 'Messages', path: '/Messages', icon: <Message /> },
   ];
+
+  const dispatch = useDispatch()
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -53,7 +62,31 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
-  const dispatch = useDispatch()
+  const getBookedRideList = async () => {
+    try {
+      const res = await getBookedRides(access_token);
+      if (res.error) {
+        console.error(res.error.data.errors); // Display login error
+        return; // Exit early on error
+      }
+      if (res.data) {
+        const { data } = res;
+        dispatch(setBookedRides({ data }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleMenuClick = async(url) => {
+    if(url === 'YourRides'){
+      
+      navigate(`/${url}`);
+    }else{
+      navigate(`/${url}`);
+    }
+    handleClose()
+  }
 
   const handleLogout = () => {
     dispatch(unSetUserToken())
@@ -63,8 +96,7 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  // eslint-disable-next-line 
-  const getVehiclesList = useCallback(async () => {
+  const getVehiclesList = async () => {
     try {
       const res = await getVehicle(access_token);
       if (res.error) {
@@ -78,10 +110,25 @@ const Navbar = () => {
     } catch (error) {
       console.error(error);
     }
-  }, [])
+  };
 
-  // eslint-disable-next-line 
-  const getProfileDetails = useCallback(async () => {
+  const getGovtIdTypeList = async () => {
+    try {
+      const res = await getGovtIdType(access_token);
+      if (res.error) {
+        console.error(res.error.data.errors); // Display login error
+        return; // Exit early on error
+      }
+      if (res.data) {
+        const { data } = res;
+        dispatch(setGovtIdType({ data }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getProfileDetails = async () => {
     try {
       const res = await userProfile(access_token);
       if (res.error) {
@@ -89,24 +136,25 @@ const Navbar = () => {
         return; // Exit early on error
       }
       if (res.data) {
+        if (res.data?.role === 'Driver') {
+          navigate("/PostRide")
+          getVehiclesList();
+          getGovtIdTypeList();
+        }else {
+          getGovtIdTypeList();
+          getBookedRideList();
+        }
         dispatch(setProfile({ profile: res.data }));
       }
     } catch (error) {
       console.error(error);
     }
-  }, []);
-
-  // eslint-disable-next-line
-  useEffect(() => {
-    if (profile?.role === 'Driver') {
-      getVehiclesList();
-    }
-  }, [profile, getVehiclesList]);
+  };
 
   // eslint-disable-next-line
   useEffect(() => {
     getProfileDetails();
-  }, [getProfileDetails])
+  }, [])
 
   return (
     <AppBar position="static" sx={{ backgroundColor: 'background.paper', borderRadius: '30px', boxShadow: 'none' }}>
@@ -156,7 +204,7 @@ const Navbar = () => {
               onClick={handleMenu}
               color="black"
             >
-              <Avatar alt={profile?.first_name}>{profile?.first_name?.split('')[0]}</Avatar>
+              <Avatar alt={profile?.first_name} src={`${process.env.REACT_APP_BASE_URL}${profile.profile_picture}`}>{profile?.first_name?.split('')[0]}</Avatar>
             </IconButton>
             <Menu
               id="menu-appbar"
@@ -173,8 +221,8 @@ const Navbar = () => {
               open={Boolean(anchorEl)}
               onClose={handleClose}
             >
-              <MenuItem onClick={() => navigate('/userprofile')}>Profile</MenuItem>
-              {profile?.role === 'Driver' && <MenuItem onClick={() => navigate('/Vehicles')}>Vehicles</MenuItem>}
+              <MenuItem onClick={() => handleMenuClick('userprofile')}>Profile</MenuItem>
+              {profile?.role === 'Driver' && <MenuItem onClick={() => handleMenuClick('Vehicles')}>Vehicles</MenuItem>}
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </div>

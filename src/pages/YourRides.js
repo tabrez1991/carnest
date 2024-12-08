@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Table,
 	TableHead,
@@ -10,20 +10,22 @@ import {
 	Button,
 	TableSortLabel,
 } from "@mui/material";
-
-const ridesData = {
-	upcoming: [
-		{ date: "17 Oct 2024", from: "Los Angeles", to: "San Francisco", rideBy: "Driver Name" },
-		{ date: "29 Dec 2024", from: "Los Angeles", to: "San Francisco", rideBy: "Driver Name" },
-	],
-	past: [
-		{ date: "1 Oct 2024", from: "Los Angeles", to: "San Francisco", rideBy: "Driver Name" },
-		{ date: "15 Sep 2024", from: "Los Angeles", to: "San Francisco", rideBy: "Driver Name" },
-	],
-};
+import { useSelector } from "react-redux";
 
 const YourRides = () => {
-	// Separate sort configurations and sorted data for each table
+	const { bookedRides } = useSelector((state) => state.apiSlice);
+
+	const today = new Date();
+
+	const formatDate = (date) => {
+		const options = { day: "2-digit", month: "short", year: "numeric" };
+		return new Intl.DateTimeFormat("en-US", options).format(date);
+	};
+
+	// State to store rides data
+	const [ridesData, setRidesData] = useState({ upcoming: [], past: [] });
+
+	// State to handle sorting configurations
 	const [upcomingSortConfig, setUpcomingSortConfig] = useState({
 		column: "date",
 		direction: "asc",
@@ -33,10 +35,37 @@ const YourRides = () => {
 		direction: "asc",
 	});
 
-	const [upcomingSortedData, setUpcomingSortedData] = useState(ridesData.upcoming);
-	const [pastSortedData, setPastSortedData] = useState(ridesData.past);
+	// Separate sorted data for each table
+	const [upcomingSortedData, setUpcomingSortedData] = useState([]);
+	const [pastSortedData, setPastSortedData] = useState([]);
 
-	// Generic function to handle sorting for a specific table
+	// Classify and sort rides when `bookedRides` changes
+	useEffect(() => {
+		const upcoming = [];
+		const past = [];
+
+		bookedRides.forEach((ride) => {
+			const rideDate = new Date(ride.ride_date);
+			const rideInfo = {
+				date: formatDate(rideDate),
+				from: ride.going_from, // Placeholder
+				to: ride.going_to, // Placeholder
+				rideBy: ride.driver_name, // Placeholder
+			};
+
+			if (rideDate >= today) {
+				upcoming.push(rideInfo);
+			} else {
+				past.push(rideInfo);
+			}
+		});
+
+		setRidesData({ upcoming, past });
+		setUpcomingSortedData(upcoming);
+		setPastSortedData(past);
+	}, [bookedRides]);
+
+	// Generic function to handle sorting
 	const handleSort = (type, column) => {
 		const isUpcoming = type === "upcoming";
 		const sortConfig = isUpcoming ? upcomingSortConfig : pastSortConfig;
@@ -136,7 +165,7 @@ const YourRides = () => {
 	return (
 		<Box sx={{ padding: 4, backgroundColor: "#f9f9f9" }}>
 			{renderTable(
-				"Up coming",
+				"Upcoming Rides",
 				upcomingSortedData,
 				upcomingSortConfig,
 				handleSort,

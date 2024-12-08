@@ -3,12 +3,12 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 // Define a service using a base URL and expected endpoints
 export const apiService = createApi({
   reducerPath: 'apiService',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://nasinghall.pythonanywhere.com/api/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.REACT_APP_BASE_URL}/api/` }),
   endpoints: (builder) => ({
     searchRides: builder.mutation({
-      query: ({ going_from_lat, going_from_lng, going_to_lat, going_to_lng, date, seats, token }) => {
+      query: ({ going_from_lat, going_from_lng, going_to_lat, going_to_lng, date, seats, range_in_km, token }) => {
         return {
-          url: `rides/?available_seats=${seats}&going_from_lat=${going_from_lat}&going_from_lng=${going_from_lng}&going_to_lat=${going_to_lat}&going_to_lng=${going_to_lng}&date=${date}`,
+          url: `rides/?available_seats=${seats}&going_from_lat=${going_from_lat}&going_from_lng=${going_from_lng}&going_to_lat=${going_to_lat}&going_to_lng=${going_to_lng}&date=${date}&range_in_km=${range_in_km}`,
           method: 'GET',
           headers: {
             'Content-type': 'application/json',
@@ -117,6 +117,18 @@ export const apiService = createApi({
         }
       }
     }),
+    getBookedRides: builder.mutation({
+      query: (token) => {
+        return {
+          url: 'booking/',
+          method: 'GET',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      }
+    }),
   }),
 });
 
@@ -130,4 +142,5 @@ export const {
   useUpdateVehicleMutation,
   useDeleteVehicleMutation,
   useGetVehicleMutation, 
+  useGetBookedRidesMutation,
 } = apiService

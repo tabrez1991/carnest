@@ -183,7 +183,7 @@ const CarpoolBooking = (props) => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar
                       sx={{ mr: 2 }}
-                      src={rideDetails.avatar}
+                      src={`${process.env.REACT_APP_BASE_URL}/${rideDetails.avatar}`}
                     >
                       {rideDetails?.driver_name?.[0]}
                     </Avatar>
