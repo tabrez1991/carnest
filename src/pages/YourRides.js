@@ -45,7 +45,7 @@ const YourRides = () => {
 		const past = [];
 
 		bookedRides.forEach((ride) => {
-			const rideDate = new Date(ride.created_at);
+			const rideDate = new Date(ride.ride_date);
 			const rideInfo = {
 				date: formatDate(rideDate),
 				from: ride.going_from, // Placeholder
