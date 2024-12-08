@@ -23,7 +23,8 @@ const PostRide = () => {
 		pricePerSeat: "",
 		availableNoOfSeats: "",
 		vehicle: "",
-		rideDescription: ""
+		rideDescription: "",
+		range_in_km: ""
 	});
 	const [serverError, setServerError] = useState({});
 
@@ -58,6 +59,7 @@ const PostRide = () => {
 			availableNoOfSeats: formData.availableNoOfSeats,
 			vehicle: formData.vehicle,
 			ride_description: formData.rideDescription,
+			range_in_km: formData.range_in_km
 		};
 
 		const res = await postRide({ actualData, access_token });
@@ -210,7 +212,7 @@ const PostRide = () => {
 							label="Price Per Seat"
 							variant="outlined"
 							margin="normal"
-							onChange={(e)=>setFormData((prev) => ({ ...prev, pricePerSeat: e.target.value }))}
+							onChange={(e) => setFormData((prev) => ({ ...prev, pricePerSeat: e.target.value }))}
 							error={Boolean(serverError.pricePerSeat)}
 							helperText={serverError.pricePerSeat ? serverError.pricePerSeat[0] : ''}
 						/>
@@ -227,7 +229,7 @@ const PostRide = () => {
 							variant="outlined"
 							margin="normal"
 							value={formData.availableNoOfSeats}
-							onChange={(e)=>setFormData((prev) => ({ ...prev, availableNoOfSeats: e.target.value }))}
+							onChange={(e) => setFormData((prev) => ({ ...prev, availableNoOfSeats: e.target.value }))}
 							error={Boolean(serverError.availableNoOfSeats)}
 							helperText={serverError.availableNoOfSeats ? serverError.availableNoOfSeats[0] : ''}
 						/>
@@ -255,6 +257,21 @@ const PostRide = () => {
 				</Grid>
 				<TextField
 					fullWidth
+					required
+					id="rangeInkms"
+					name="rangeInkms"
+					label="Range in km"
+					variant="outlined"
+					margin="normal"
+					value={formData.range_in_km}
+					error={Boolean(serverError.range_in_km)}
+					helperText={serverError.rideDescription ? serverError.rideDescription[0] : ''}
+					onChange={(e) =>
+						setFormData((prev) => ({ ...prev, range_in_km: e.target.value }))
+					}
+				/>
+				<TextField
+					fullWidth
 					multiline
 					rows={5}
 					required
@@ -264,7 +281,7 @@ const PostRide = () => {
 					variant="outlined"
 					margin="normal"
 					value={formData.rideDescription}
-					onChange={(e)=>setFormData((prev) => ({ ...prev, rideDescription: e.target.value }))}
+					onChange={(e) => setFormData((prev) => ({ ...prev, rideDescription: e.target.value }))}
 					error={Boolean(serverError.rideDescription)}
 					helperText={serverError.rideDescription ? serverError.rideDescription[0] : ''}
 				/>

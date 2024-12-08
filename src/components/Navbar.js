@@ -21,8 +21,8 @@ import { Search, DirectionsCar, List, Message } from '@mui/icons-material';
 import { removeToken } from '../services/LocalStorageService';
 import { useSelector, useDispatch } from 'react-redux';
 import { setGovtIdType, setProfile, unSetUserToken } from '../features/authSlice';
-import { useGetVehicleMutation } from '../services/apiService';
-import { setVehiclesList } from '../features/apiSlice';
+import { useGetBookedRidesMutation, useGetVehicleMutation } from '../services/apiService';
+import { setBookedRides, setVehiclesList } from '../features/apiSlice';
 import { useGetGovtIdTypeMutation, useUserProfileMutation } from '../services/userAuthApi';
 
 
@@ -31,20 +31,25 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   // Access the token and derive `isLoggedIn` from Redux state
   const { access_token, profile } = useSelector((state) => state.auth);
-  console.log("profile",profile)
+
   const [getVehicle] = useGetVehicleMutation();
   const [userProfile, { isLoading }] = useUserProfileMutation();
-  const [getGovtIdType ] = useGetGovtIdTypeMutation();
+  const [getGovtIdType] = useGetGovtIdTypeMutation();
+  const [getBookedRides] = useGetBookedRidesMutation();
+
 
   const isLoggedIn = Boolean(access_token);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
   const menuItems = [
-    { name: 'Search', path: '/search', icon: <Search /> },
+    // { name: 'Search', path: '/search', icon: <Search /> },
+    ...(profile?.role !== 'Driver' ? [{ name: 'Search', path: '/search', icon: <Search /> }] : []),
     ...(profile?.role === 'Driver' ? [{ name: 'Post Ride', path: '/PostRide', icon: <DirectionsCar /> }] : []),
-    { name: 'Your Rides', path: '/YourRides', icon: <List /> },
-    { name: 'Messages', path: '/Messages', icon: <Message /> },
+    ...(profile?.role !== 'Driver' ? [{ name: 'Your Rides', path: '/YourRides', icon: <List /> }] : []),
+    ...(profile?.role !== 'Driver' ? [{ name: 'Messages', path: '/Messages', icon: <Message /> }] : []),
+    // { name: 'Your Rides', path: '/YourRides', icon: <List /> },
+    // { name: 'Messages', path: '/Messages', icon: <Message /> },
   ];
 
   const dispatch = useDispatch()
@@ -57,8 +62,29 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
-  const handleMenuClick = (url) => {
-    navigate(`/${url}`);
+  const getBookedRideList = async () => {
+    try {
+      const res = await getBookedRides(access_token);
+      if (res.error) {
+        console.error(res.error.data.errors); // Display login error
+        return; // Exit early on error
+      }
+      if (res.data) {
+        const { data } = res;
+        dispatch(setBookedRides({ data }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleMenuClick = async(url) => {
+    if(url === 'YourRides'){
+      
+      navigate(`/${url}`);
+    }else{
+      navigate(`/${url}`);
+    }
     handleClose()
   }
 
@@ -111,8 +137,12 @@ const Navbar = () => {
       }
       if (res.data) {
         if (res.data?.role === 'Driver') {
+          navigate("/PostRide")
           getVehiclesList();
           getGovtIdTypeList();
+        }else {
+          getGovtIdTypeList();
+          getBookedRideList();
         }
         dispatch(setProfile({ profile: res.data }));
       }

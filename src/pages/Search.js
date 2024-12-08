@@ -19,7 +19,8 @@ const Search = () => {
 		going_to_lat: "",
 		going_to_lng: "",
 		date: "",
-		seats: ""
+		seats: "",
+		range_in_km: "",
 	});
 	const [serverError, setServerError] = useState('');
 	const [validationErrors, setValidationErrors] = useState({});
@@ -39,6 +40,7 @@ const Search = () => {
 		if (!formData.going_to) errors.going_to = "Going to location is required.";
 		if (!formData.date) errors.date = "Date is required.";
 		if (!formData.seats) errors.seats = "Number of passengers is required.";
+		if (!formData.range_in_km) errors.range_in_km = "Range in km is required.";
 		setValidationErrors(errors);
 		return Object.keys(errors).length === 0;
 	};
@@ -75,6 +77,7 @@ const Search = () => {
 			going_to_lng: formData.going_to_lng,
 			date: formData.date,
 			seats: formData.seats,
+			range_in_km: formData.range_in_km,
 			token: access_token
 		};
 
@@ -115,7 +118,7 @@ const Search = () => {
 			}}
 		>
 			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
-			{showMakeReservation && <MakeReservation handleBack={handleBack} rideBookId={rideBookId}/>}
+			{showMakeReservation && <MakeReservation handleBack={handleBack} rideBookId={rideBookId} />}
 			{showSearch && (
 				<Box
 					sx={{
@@ -187,6 +190,19 @@ const Search = () => {
 							error={validationErrors.seats}
 							onChange={(e) =>
 								setFormData((prev) => ({ ...prev, seats: e.target.value }))
+							}
+						/>
+						<TextField
+							fullWidth
+							required
+							id="rangeInkms"
+							name="rangeInkms"
+							label="Range in km"
+							variant="outlined"
+							margin="normal"
+							error={validationErrors.range_in_km}
+							onChange={(e) =>
+								setFormData((prev) => ({ ...prev, range_in_km: e.target.value }))
 							}
 						/>
 						<Box>
