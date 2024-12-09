@@ -129,6 +129,43 @@ export const apiService = createApi({
         }
       }
     }),
+    getConversation: builder.mutation({
+      query: (token) => {
+        return {
+          url: 'user/conversations/',
+          method: 'GET',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      }
+    }),
+    getConvoMessages: builder.mutation({
+      query: ({ conversationId, token }) => {
+        return {
+          url: `user/conversations/${conversationId}/messages/`,
+          method: 'GET',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      }
+    }),
+    sendMessage: builder.mutation({
+      query: ({ conversationId, message, access_token }) => {
+        return {
+          url: `user/conversations/${conversationId}/messages/`,
+          method: 'POST',
+          body: { content: message },
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+          },
+        };
+      },
+    }),
   }),
 });
 
@@ -143,4 +180,7 @@ export const {
   useDeleteVehicleMutation,
   useGetVehicleMutation, 
   useGetBookedRidesMutation,
+  useGetConversationMutation,
+  useSendMessageMutation,
+  useGetConvoMessagesMutation,
 } = apiService
