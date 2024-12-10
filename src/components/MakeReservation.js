@@ -40,8 +40,6 @@ const CarpoolBooking = (props) => {
   const { access_token, profile } = useSelector((state) => state.auth);
   const { rideDetails } = useSelector((state) => state.apiSlice);
 
-  console.log(rideDetails)
-
   const availableSeats = generateSeatList(4);
 
   const [bookRide, { isLoading }] = useBookRideMutation();
@@ -88,9 +86,10 @@ const CarpoolBooking = (props) => {
       const actualData = {
         ride: rideBookId,
         passenger: profile.id,
-        number_of_seats: rideDetails.available_seats,
+        seat_2: false,
+        seat_3: true,
+        seat_4: true,
         additional_notes: rideDetails.ride_description,
-        booked_seat: bookedSeatNumbers,
       }
       console.log(actualData)
       const res = await bookRide({ actualData, access_token });

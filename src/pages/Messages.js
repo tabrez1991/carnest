@@ -65,6 +65,7 @@ const WhatsAppChat = () => {
       console.error("Error fetching conversation details:", error);
     }
   };
+
   const handleSendMessage = async () => {
     try {
       const res = await sendMessage({ access_token, conversationId: selectedConversation?.conversation_id, message: newMessage });
