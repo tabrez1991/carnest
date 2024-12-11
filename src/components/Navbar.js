@@ -27,32 +27,30 @@ import { useGetGovtIdTypeMutation, useUserProfileMutation } from '../services/us
 
 
 const Navbar = () => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   // Access the token and derive `isLoggedIn` from Redux state
   const { access_token, profile } = useSelector((state) => state.auth);
 
   const [getVehicle] = useGetVehicleMutation();
-  const [userProfile, { isLoading }] = useUserProfileMutation();
+  const [userProfile, { error, isLoading }] = useUserProfileMutation();
   const [getGovtIdType] = useGetGovtIdTypeMutation();
   const [getBookedRides] = useGetBookedRidesMutation();
 
+  if (error) return <div>Error loading profile</div>;
 
   const isLoggedIn = Boolean(access_token);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const navigate = useNavigate();
 
   const menuItems = [
-    // { name: 'Search', path: '/search', icon: <Search /> },
-    ...(profile?.role !== 'Driver' ? [{ name: 'Search', path: '/search', icon: <Search /> }] : []),
-    ...(profile?.role === 'Driver' ? [{ name: 'Post Ride', path: '/PostRide', icon: <DirectionsCar /> }] : []),
-    ...(profile?.role !== 'Driver' ? [{ name: 'Your Rides', path: '/YourRides', icon: <List /> }] : []),
-    ...(profile?.role !== 'Driver' ? [{ name: 'Messages', path: '/Messages', icon: <Message /> }] : []),
-    // { name: 'Your Rides', path: '/YourRides', icon: <List /> },
-    // { name: 'Messages', path: '/Messages', icon: <Message /> },
+    { name: 'Search', path: '/search', icon: <Search /> },
+    { name: 'Post Ride', path: '/PostRide', icon: <DirectionsCar /> },
+    { name: 'Your Rides', path: '/YourRides', icon: <List /> },
+    { name: 'Messages', path: '/Messages', icon: <Message /> },
   ];
-
-  const dispatch = useDispatch()
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -74,15 +72,15 @@ const Navbar = () => {
         dispatch(setBookedRides({ data }));
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     }
   };
 
-  const handleMenuClick = async(url) => {
-    if(url === 'YourRides'){
-      
+  const handleMenuClick = async (url) => {
+    if (url === 'YourRides') {
+
       navigate(`/${url}`);
-    }else{
+    } else {
       navigate(`/${url}`);
     }
     handleClose()
@@ -108,7 +106,7 @@ const Navbar = () => {
         dispatch(setVehiclesList({ data }));
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     }
   };
 
@@ -124,7 +122,7 @@ const Navbar = () => {
         dispatch(setGovtIdType({ data }));
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     }
   };
 
@@ -140,14 +138,14 @@ const Navbar = () => {
           navigate("/PostRide")
           getVehiclesList();
           getGovtIdTypeList();
-        }else {
+        } else {
           getGovtIdTypeList();
           getBookedRideList();
         }
         dispatch(setProfile({ profile: res.data }));
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     }
   };
 

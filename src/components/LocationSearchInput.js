@@ -25,6 +25,7 @@ const LocationSearchInput = (props) => {
       value={value}
       onChange={handleChange}
       onSelect={handleSelect}
+      data-testid="date-input"
     >
       {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
         <div style={{ position: 'relative' }}>
@@ -36,6 +37,7 @@ const LocationSearchInput = (props) => {
             id={id}
             name={name}
             label={label}
+            
             variant="outlined"
             margin="normal"
             {...getInputProps({

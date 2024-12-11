@@ -56,10 +56,8 @@ const PostRide = () => {
 			going_to_lng: formData.goingToLng,
 			date_time: formData.dateTime,
 			price_per_seat: formData.pricePerSeat,
-			availableNoOfSeats: formData.availableNoOfSeats,
 			vehicle: formData.vehicle,
 			ride_description: formData.rideDescription,
-			range_in_km: formData.range_in_km
 		};
 
 		const res = await postRide({ actualData, access_token });
@@ -219,8 +217,8 @@ const PostRide = () => {
 					</Grid>
 				</Grid>
 				<Grid container spacing={2}>
-					<Grid size={6}>
-						<TextField
+					{/* <Grid size={6}> */}
+						{/* <TextField
 							fullWidth
 							required
 							id="availableNoOfSeats"
@@ -232,9 +230,9 @@ const PostRide = () => {
 							onChange={(e) => setFormData((prev) => ({ ...prev, availableNoOfSeats: e.target.value }))}
 							error={Boolean(serverError.availableNoOfSeats)}
 							helperText={serverError.availableNoOfSeats ? serverError.availableNoOfSeats[0] : ''}
-						/>
-					</Grid>
-					<Grid size={6}>
+						/> */}
+					{/* </Grid> */}
+					<Grid size={12}>
 						<Select
 							fullWidth
 							required
@@ -255,7 +253,7 @@ const PostRide = () => {
 						</Select>
 					</Grid>
 				</Grid>
-				<TextField
+				{/* <TextField
 					fullWidth
 					required
 					id="rangeInkms"
@@ -269,7 +267,7 @@ const PostRide = () => {
 					onChange={(e) =>
 						setFormData((prev) => ({ ...prev, range_in_km: e.target.value }))
 					}
-				/>
+				/> */}
 				<TextField
 					fullWidth
 					multiline

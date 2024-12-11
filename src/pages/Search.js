@@ -172,6 +172,8 @@ const Search = () => {
 							id="date"
 							name="date"
 							type="date"
+							data-testid="date-input"
+							value={formData.date}
 							error={validationErrors.date}
 							variant="outlined"
 							margin="normal"
