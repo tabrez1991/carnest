@@ -220,7 +220,7 @@ const Navbar = () => {
               onClose={handleClose}
             >
               <MenuItem onClick={() => handleMenuClick('userprofile')}>Profile</MenuItem>
-              {profile?.role === 'Driver' && <MenuItem onClick={() => handleMenuClick('Vehicles')}>Vehicles</MenuItem>}
+              <MenuItem onClick={() => handleMenuClick('Vehicles')}>Vehicles</MenuItem>
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </div>
