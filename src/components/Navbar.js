@@ -241,6 +241,7 @@ const Navbar = () => {
               width: '100%',
               position: 'fixed',
               bottom: 0,
+              left: 0,
               zIndex: 1000,
               borderTop: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.background.paper,
