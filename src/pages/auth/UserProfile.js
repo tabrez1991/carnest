@@ -96,15 +96,15 @@ const UserProfile = () => {
 			}
 
 			// Append other user details to FormData
-			data.append("address", user.address);
-			data.append("addressLat", user.addressLat);
-			data.append("addressLng", user.addressLng);
-			data.append("email", user.email);
-			data.append("first_name", user.firstName);
-			data.append("government_id_number", user.idNumber);
-			data.append("government_id_type", user.idType);
-			data.append("last_name", user.lastName);
-			data.append("phone_number", user.phone);
+			user.address && data.append("address", user.address);
+			user.addressLat && data.append("addressLat", user.addressLat);
+			user.addressLng && data.append("addressLng", user.addressLng);
+			// user.email && data.append("email", user.email);
+			user.firstName && data.append("first_name", user.firstName);
+			user.idNumber && data.append("government_id_number", user.idNumber);
+			user.idType && data.append("government_id_type", user.idType);
+			user.lastName && data.append("last_name", user.lastName);
+			// user.phone && data.append("phone_number", user.phone);
 
 			// API call
 			const res = await updateUserProfile({ actualData: data, access_token, user: id });
@@ -237,9 +237,9 @@ const UserProfile = () => {
 						margin="normal"
 						InputProps={{
 							endAdornment: isEmailVerified && (
-									<CheckCircleIcon sx={{ color: "green", marginLeft: 1 }} />
+								<CheckCircleIcon sx={{ color: "green", marginLeft: 1 }} />
 							),
-					}}
+						}}
 					/>
 					<TextField
 						label="Phone Number"
