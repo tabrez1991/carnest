@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTheme } from '@mui/system';
+import { useMediaQuery, useTheme } from '@mui/system';
 import { Alert, Box, Button, CircularProgress, MenuItem, Select, Snackbar, TextField, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import { usePostRideMutation } from "../services/apiService";
@@ -9,6 +9,7 @@ import LocationSearchInput from "../components/LocationSearchInput";
 
 const PostRide = () => {
 	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const [open, setOpen] = useState(false);
 	const [message, setMessage] = useState("");
@@ -109,7 +110,7 @@ const PostRide = () => {
 				justifyContent: 'center',
 				height: '100vh',
 				backgroundColor: '#f0f2f5',
-				padding: theme.spacing(2),
+				padding: isMobile ? 0 : theme.spacing(2),
 			}}
 		>
 			<Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>

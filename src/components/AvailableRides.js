@@ -1,43 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, List, Divider, CircularProgress, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  List,
+  Divider,
+  CircularProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { FaCarSide, FaArrowLeft } from "react-icons/fa";
 import { GoogleMap, DirectionsRenderer, useJsApiLoader } from "@react-google-maps/api";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetRidesByIdMutation } from "../services/apiService";
 import { setRideDetails } from "../features/apiSlice";
-
-// const rides = [
-//   {
-//     id: 1,
-//     from: "Los Angeles",
-//     to: "San Francisco",
-//     time: "5:00",
-//     duration: "6h55",
-//     price: "$50.00",
-//     driver: "Driver Name",
-//     car: "Honda Civic",
-//   },
-//   {
-//     id: 2,
-//     from: "Los Angeles",
-//     to: "San Francisco",
-//     time: "5:00",
-//     duration: "6h55",
-//     price: "$50.00",
-//     driver: "Driver Name",
-//     car: "BMW M4",
-//   },
-//   {
-//     id: 3,
-//     from: "Los Angeles",
-//     to: "San Francisco",
-//     time: "5:00",
-//     duration: "6h55",
-//     price: "$50.00",
-//     driver: "Driver Name",
-//     car: "Toyota Camry",
-//   },
-// ];
 
 const center = { lat: 36.7783, lng: -119.4179 }; // California center for initial map view
 
@@ -52,11 +29,11 @@ const AvailableRides = (props) => {
   const [directions, setDirections] = useState(null);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState("success")
+  const [severity, setSeverity] = useState("success");
 
   const [getRidesById, { isLoading }] = useGetRidesByIdMutation();
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyA4DgX7hxdOnIKy30hDEi9nzft06J3V6ho", // Replace with your Google Maps API Key
@@ -64,11 +41,10 @@ const AvailableRides = (props) => {
 
   const handleSelectRide = (ride) => {
     setSelectedRide(ride);
-    setDirections(null)
+    setDirections(null);
 
     const directionsService = new window.google.maps.DirectionsService();
 
-    // Create LatLng objects for origin and destination
     const origin = new window.google.maps.LatLng(ride.going_from_lat, ride.going_from_lng);
     const destination = new window.google.maps.LatLng(ride.going_to_lat, ride.going_to_lng);
 
@@ -89,7 +65,7 @@ const AvailableRides = (props) => {
   };
 
   const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setOpen(false);
@@ -100,12 +76,12 @@ const AvailableRides = (props) => {
     if (res.error) {
       setMessage(res.error.data.errors);
       setOpen(true);
-      setSeverity("error")
+      setSeverity("error");
     } else if (res.data) {
       dispatch(setRideDetails({ data: res.data }));
-      handleBook(id)
+      handleBook(id);
     }
-  }
+  };
 
   useEffect(() => {
     if (rides.length > 0) {
@@ -113,24 +89,47 @@ const AvailableRides = (props) => {
     }
   }, [rides]);
 
-
   if (!isLoaded) return <Typography>Loading Maps...</Typography>;
 
   return (
-    <Box sx={{ display: "flex", height: "88vh", backgroundColor: "#f9f9f9", marginBottom: "10px" }}>
-      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        height: "88vh",
+        backgroundColor: "#f9f9f9",
+        marginBottom: "10px",
+      }}
+    >
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
         <Alert
           onClose={handleClose}
           severity={severity}
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {message}
         </Alert>
       </Snackbar>
+
       {/* Left Panel */}
-      <Box sx={{ width: "40%", padding: 2, overflowY: "auto", borderRight: "1px solid #ddd", backgroundColor: "#fff" }}>
-        <Typography onClick={() => handleBack('available')}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>
+      <Box
+        sx={{
+          width: { xs: "100%", md: "40%" },
+          padding: 2,
+          overflowY: "auto",
+          borderRight: { xs: "none", md: "1px solid #ddd" },
+          backgroundColor: "#fff",
+        }}
+      >
+        <Typography onClick={() => handleBack("available")}>
+          <FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} />
+        </Typography>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold", textAlign: "center" }}>
           Available Rides
         </Typography>
@@ -151,7 +150,7 @@ const AvailableRides = (props) => {
               onClick={() => handleSelectRide(ride)}
             >
               <Typography variant="subtitle2">
-                {ride.date_time.split('T')[1].replace('Z', '').slice(0, -3)} • {ride.going_from}
+                {ride.date_time.split("T")[1].replace("Z", "").slice(0, -3)} • {ride.going_from}
               </Typography>
               <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 1 }}>
                 {ride.duration}
@@ -165,16 +164,23 @@ const AvailableRides = (props) => {
               >
                 {ride.price_per_seat}
               </Typography>
-              {console.log("ride", ride)}
-              {ride.available_seats <= 1 ? <Box></Box> : isLoading && ride.id === selectedRide.id ? <Box sx={{ float: "right" }}><CircularProgress size={25} /></Box> : <Button
-                size="small"
-                variant="contained"
-                color="warning"
-                sx={{ float: "right", textTransform: "capitalize" }}
-                onClick={() => getRideDetails(ride.id)}
-              >
-                Book
-              </Button>}
+              {ride.available_seats <= 1 ? (
+                <Box></Box>
+              ) : isLoading && ride.id === selectedRide.id ? (
+                <Box sx={{ float: "right" }}>
+                  <CircularProgress size={25} />
+                </Box>
+              ) : (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="warning"
+                  sx={{ float: "right", textTransform: "capitalize" }}
+                  onClick={() => getRideDetails(ride.id)}
+                >
+                  Book
+                </Button>
+              )}
               <Divider sx={{ my: 1 }} />
               <Typography variant="body2">
                 <FaCarSide style={{ marginRight: 5 }} />
@@ -186,14 +192,20 @@ const AvailableRides = (props) => {
       </Box>
 
       {/* Right Panel */}
-      <Box sx={{ width: "60%" }}>
-        {<GoogleMap
+      <Box
+        sx={{
+          width: { xs: "100%", md: "60%" },
+          height: { xs: "300px", md: "100%" },
+          mt: { xs: 2, md: 0 },
+        }}
+      >
+        <GoogleMap
           center={center}
           zoom={6}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
           {directions && <DirectionsRenderer directions={directions} />}
-        </GoogleMap>}
+        </GoogleMap>
       </Box>
     </Box>
   );

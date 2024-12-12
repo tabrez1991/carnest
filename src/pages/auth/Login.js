@@ -9,7 +9,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { useTheme } from '@mui/system';
+import { useMediaQuery, useTheme } from '@mui/system';
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLoginUserMutation } from '../../services/userAuthApi';
@@ -19,6 +19,7 @@ import { setUserToken } from '../../features/authSlice';
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [serverError, setServerError] = useState({});
 
@@ -28,38 +29,38 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Extracting data from the form
     const data = new FormData(e.currentTarget);
     const actualData = {
       email: data.get("email"),
       password: data.get("password"),
     };
-  
+
     try {
       // Login user
       const res = await loginUser(actualData);
-  
+
       if (res.error) {
         setServerError(res.error.data.errors); // Display login error
         return; // Exit early on error
       }
-  
+
       if (res.data) {
         // Store the token and update Redux state
         storeToken(res.data.token);
         const { access_token } = getToken();
         dispatch(setUserToken({ access_token }));
-  
+
         // // Fetch user profile using the access token
         // const result = await userProfile(access_token);
-  
+
         // if (result.error) {
         //   setServerError(result.error.data.errors); // Display profile fetch error
         // } else if (result.data) {
         //   // Set user profile in Redux and navigate to the search page
         //   dispatch(setProfile({ profile: result.data }));
-          navigate("/search");
+        navigate("/search");
         // }
       }
     } catch (error) {
@@ -67,7 +68,7 @@ const Login = () => {
       setServerError([{ msg: "An unexpected error occurred. Please try again later." }]);
     }
   };
-  
+
 
   return (
     <Box
@@ -76,8 +77,8 @@ const Login = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#f0f2f5',
-        padding: theme.spacing(2),
+        backgroundColor: isMobile ? "#fff" : '#f0f2f5',
+        padding: isMobile ? 0 : theme.spacing(2),
       }}
     >
       <Box
@@ -87,7 +88,7 @@ const Login = () => {
           padding: theme.spacing(4),
           borderRadius: '8px',
           backgroundColor: '#FFFFFF',
-          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+          boxShadow: isMobile ? 'none' : '0px 4px 12px rgba(0, 0, 0, 0.1)',
           textAlign: 'center',
         }}
         component="form"

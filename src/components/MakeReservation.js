@@ -11,6 +11,9 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  useMediaQuery,
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
@@ -22,6 +25,9 @@ import { generateSeatList } from '../helper';
 
 const CarpoolBooking = (props) => {
   const { handleBack, rideBookId } = props;
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [open, setOpen] = useState(false);
@@ -78,17 +84,30 @@ const CarpoolBooking = (props) => {
   };
 
   const handleMakeReservation = async () => {
+    // Map seat positions explicitly to their real-world locations
+    const seatMapping = {
+      'Front Right': "seat_2", // Front-right
+      'Back Left': "seat_3", // Back-left
+      'Back Right': "seat_4", // Back-right
+    };
+
+    // Get non-booked seats
     const nonBookedSeats = availableSeats.filter(
-      (seat) => !rideDetails?.passengers.some((passenger) =>
-        passenger.selected_seats.includes(seat)
-      )
+      (seat) =>
+        !rideDetails?.passengers.some((passenger) =>
+          passenger.selected_seats.includes(seat)
+        )
     );
 
-    console.log(nonBookedSeats);
+    // Prepare seat payload using the correct seat mapping
     const seatPayload = nonBookedSeats.reduce((acc, seat, index) => {
-      acc[`seat_${index + 4}`] = selectedSeats.includes(seat);
+      const seatKey = seatMapping[seat]; // Map seat index to its correct position
+      if (seatKey) {
+        acc[seatKey] = selectedSeats.includes(seat); // Check if seat is selected
+      }
       return acc;
     }, {});
+
 
     try {
       const actualData = {
@@ -96,23 +115,25 @@ const CarpoolBooking = (props) => {
         passenger: profile.id,
         ...seatPayload,
         additional_notes: rideDetails.ride_description,
-      }
+      };
+
       const res = await bookRide({ actualData, access_token });
       if (res.error) {
         setMessage(res.error.data.errors);
         setOpen(true);
-        setSeverity("error")
+        setSeverity("error");
       } else if (res.data) {
-        console.log(res)
+        console.log(res);
         setMessage("Ride booked successfully");
         setOpen(true);
-        setSeverity("success")
-        handleBack()
+        setSeverity("success");
+        handleBack();
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
+
 
   useEffect(() => {
     if (rideDetails && rideDetails.passengers?.length > 0) {
@@ -156,15 +177,19 @@ const CarpoolBooking = (props) => {
           </Box>
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography>
-                <strong>{rideDetails.going_from}</strong>
-              </Typography>
+              <Tooltip title={rideDetails.going_from || ''} placement="top">
+                <Typography sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                  <strong>{rideDetails.going_from}</strong>
+                </Typography>
+              </Tooltip>
               <Typography>
                 {rideDetails.within_time} ({rideDetails.within_distance}Km)
               </Typography>
-              <Typography>
-                <strong>{rideDetails.going_to}</strong>
-              </Typography>
+              <Tooltip title={rideDetails.going_to || ''} placement="top">
+                <Typography sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                  <strong>{rideDetails.going_to}</strong>
+                </Typography>
+              </Tooltip>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: 3, mr: 3, position: 'relative' }}>
               {/* Circle 1 */}
@@ -248,7 +273,7 @@ const CarpoolBooking = (props) => {
         </Box>
         {/* Seat Picker */}
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ background: "#fff", borderRadius: "10px", p: 2, textAlign: "center", width: 400, margin: "auto" }}>
+          <Box sx={{ background: "#fff", borderRadius: "10px", p: 2, textAlign: "center", maxWidth: 400, margin: "auto" }}>
             <Typography variant="h6" gutterBottom>
               Car Seat Picker
             </Typography>
@@ -266,7 +291,7 @@ const CarpoolBooking = (props) => {
                   border: "1px solid black",
                   borderRadius: "10px",
                   margin: "auto",
-                  width: "60%",
+                  width: isMobile ? "100%" : "70%",
                   display: "flex",
                   flexWrap: "wrap", // Wrap items into rows
                   justifyContent: "space-between", // Space between columns
@@ -297,13 +322,14 @@ const CarpoolBooking = (props) => {
                     sx={{
                       textTransform: "capitalize",
                       fontSize: "0.9rem",
-                      width: "40%", // Two columns layout
+                      width: "30%", // Two columns layout
                       height: "50px",
                       bgcolor: selectedSeats.includes(seat) ? "orange" : "#dbb16459",
                       color: selectedSeats.includes(seat) ? "white" : "black",
                       mt: index > 0 ? 7 : 0
                     }}
                   >
+
                   </Button>
                 ))}
               </Box>
@@ -342,7 +368,7 @@ const CarpoolBooking = (props) => {
             Make Reservation
           </Button>}
       </Box>
-    </Box>
+    </Box >
   );
 };
 
