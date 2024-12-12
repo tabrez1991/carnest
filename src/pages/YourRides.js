@@ -10,10 +10,20 @@ import {
 	Button,
 	TableSortLabel,
 } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import ViewRide from "../components/ViewRide";
+import { useCancelRideMutation, useGetBookedRidesMutation } from "../services/apiService";
+import { setBookedRides } from "../features/apiSlice";
 
 const YourRides = () => {
 	const { bookedRides } = useSelector((state) => state.apiSlice);
+
+	const dispatch = useDispatch();
+
+	const { access_token } = useSelector((state) => state.auth);
+	const [cancelRide, { isLoading }] = useCancelRideMutation();
+	const [getBookedRides] = useGetBookedRidesMutation();
+
 
 	const today = new Date();
 
@@ -24,6 +34,8 @@ const YourRides = () => {
 
 	// State to store rides data
 	const [ridesData, setRidesData] = useState({ upcoming: [], past: [] });
+	const [viewRide, setViewRide] = useState(null)
+	const [isViewRide, setIsViewRide] = useState(false)
 
 	// State to handle sorting configurations
 	const [upcomingSortConfig, setUpcomingSortConfig] = useState({
@@ -51,6 +63,7 @@ const YourRides = () => {
 				from: ride.going_from, // Placeholder
 				to: ride.going_to, // Placeholder
 				rideBy: ride.driver_name, // Placeholder
+				...ride,
 			};
 
 			if (rideDate >= today) {
@@ -91,6 +104,46 @@ const YourRides = () => {
 			setPastSortedData(sortedData);
 		}
 	};
+
+	const handleVeiwRide = (ride) => {
+		setViewRide(ride);
+		setIsViewRide(true)
+	}
+
+	const handleCloseViewRide = () => {
+		setViewRide(null);
+		setIsViewRide(false)
+	}
+
+	const getBookedRideList = async () => {
+		try {
+			const res = await getBookedRides(access_token);
+			if (res.error) {
+				console.error(res.error.data.errors); // Display login error
+				return; // Exit early on error
+			}
+			if (res.data) {
+				const { data } = res;
+				dispatch(setBookedRides({ data }));
+			}
+		} catch (error) {
+			// console.error(error);
+		}
+	};
+
+	const handleCancel = async (ride) => {
+		try {
+			const res = await cancelRide({ id: ride.id, access_token })
+			if (res.error) {
+				console.error(res.error.data.errors); // Display login error
+				return; // Exit early on error
+			} else if (res.data) {
+				getBookedRideList();
+			}
+		} catch (error) {
+			console.error(error)
+		}
+	}
 
 	// Render a specific table
 	const renderTable = (title, rides, sortConfig, onSort, type) => (
@@ -152,8 +205,8 @@ const YourRides = () => {
 							<TableCell>{ride.to}</TableCell>
 							<TableCell>{ride.rideBy}</TableCell>
 							<TableCell>
-								<Button sx={{ color: "orange", textTransform: "none", fontWeight: 700 }}>View Ride</Button> |{" "}
-								<Button sx={{ color: "red", textTransform: "none", fontWeight: 700 }}>Cancel</Button>
+								<Button sx={{ color: "orange", textTransform: "none", fontWeight: 700 }} onClick={() => handleVeiwRide(ride)}>View Ride</Button> {ride.status !== 'Cancelled' && <span>| { " "}
+								<Button sx={{ color: "red", textTransform: "none", fontWeight: 700 }} onClick={() => handleCancel(ride)}>Cancel</Button></span>}
 							</TableCell>
 						</TableRow>
 					))}
@@ -172,6 +225,7 @@ const YourRides = () => {
 				"upcoming"
 			)}
 			{renderTable("Past Rides", pastSortedData, pastSortConfig, handleSort, "past")}
+			{isViewRide && <ViewRide ride={viewRide} handleCloseModal={handleCloseViewRide} />}
 		</Box>
 	);
 };

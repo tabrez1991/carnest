@@ -120,7 +120,7 @@ const Register = () => {
           />
         </Box>
         <Box display="flex" gap={1} >
-          <Select
+          {/* <Select
             fullWidth
             required
             id="role"
@@ -138,7 +138,7 @@ const Register = () => {
             </MenuItem>
             <MenuItem value="Passenger">Passenger</MenuItem>
             <MenuItem value="Driver">Driver</MenuItem>
-          </Select>
+          </Select> */}
           <TextField
             name="phone_number"
             label="Mobile Number"

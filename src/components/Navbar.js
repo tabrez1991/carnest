@@ -134,14 +134,9 @@ const Navbar = () => {
         return; // Exit early on error
       }
       if (res.data) {
-        if (res.data?.role === 'Driver') {
-          navigate("/PostRide")
-          getVehiclesList();
-          getGovtIdTypeList();
-        } else {
-          getGovtIdTypeList();
-          getBookedRideList();
-        }
+        getVehiclesList();
+        getGovtIdTypeList();
+        getBookedRideList();
         dispatch(setProfile({ profile: res.data }));
       }
     } catch (error) {
@@ -220,7 +215,7 @@ const Navbar = () => {
               onClose={handleClose}
             >
               <MenuItem onClick={() => handleMenuClick('userprofile')}>Profile</MenuItem>
-              {profile?.role === 'Driver' && <MenuItem onClick={() => handleMenuClick('Vehicles')}>Vehicles</MenuItem>}
+              <MenuItem onClick={() => handleMenuClick('Vehicles')}>Vehicles</MenuItem>
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </div>
@@ -241,6 +236,7 @@ const Navbar = () => {
               width: '100%',
               position: 'fixed',
               bottom: 0,
+              left: 0,
               zIndex: 1000,
               borderTop: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.background.paper,
