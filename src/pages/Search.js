@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
-import { useTheme } from '@mui/system';
+import { useMediaQuery, useTheme } from '@mui/system';
 import AvailableRides from "../components/AvailableRides";
 import MakeReservation from "../components/MakeReservation";
 import { useSearchRidesMutation } from "../services/apiService";
@@ -10,6 +10,7 @@ import LocationSearchInput from "../components/LocationSearchInput";
 
 const Search = () => {
 	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const [formData, setFormData] = useState({
 		going_from: "",
@@ -113,8 +114,8 @@ const Search = () => {
 		<Box
 			sx={{
 				height: '90vh',
-				backgroundColor: '#f0f2f5',
-				padding: theme.spacing(2),
+				backgroundColor: isMobile ? "#fff" : '#f0f2f5',
+				padding: isMobile ? 0 : theme.spacing(2),
 			}}
 		>
 			{showAvailable && <AvailableRides handleBook={handleBook} handleBack={handleBack} />}
@@ -127,7 +128,7 @@ const Search = () => {
 						justifyContent: 'center',
 						height: '100%',
 						backgroundColor: '#f0f2f5',
-						padding: theme.spacing(2),
+						padding: isMobile ? 0 : theme.spacing(2),
 					}}
 				>
 					<Box

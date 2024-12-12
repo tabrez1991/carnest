@@ -8,11 +8,13 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
-import { useTheme } from "@mui/system";
+import { useMediaQuery, useTheme } from "@mui/system";
 import { useSendPasswordResetEmailMutation } from "../../services/userAuthApi";
 
 const ForgotPassword = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [serverError, setServerError] = useState({});
   const [serverMessage, setServerMessage] = useState("");
   const [forgotPassword, { isLoading }] = useSendPasswordResetEmailMutation();
@@ -41,8 +43,8 @@ const ForgotPassword = () => {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
-        backgroundColor: "#f0f2f5",
-        padding: theme.spacing(2),
+        backgroundColor: isMobile ? "#fff" : "#f0f2f5",
+        padding: isMobile ? 0 : theme.spacing(2),
       }}
     >
       <Box
@@ -52,7 +54,7 @@ const ForgotPassword = () => {
           padding: theme.spacing(4),
           borderRadius: "8px",
           backgroundColor: "#FFFFFF",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          boxShadow: isMobile ? 'none' : "0px 4px 12px rgba(0, 0, 0, 0.1)",
           textAlign: "center",
         }}
         component="form"
