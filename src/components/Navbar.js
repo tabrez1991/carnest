@@ -134,14 +134,9 @@ const Navbar = () => {
         return; // Exit early on error
       }
       if (res.data) {
-        if (res.data?.role === 'Driver') {
-          navigate("/PostRide")
-          getVehiclesList();
-          getGovtIdTypeList();
-        } else {
-          getGovtIdTypeList();
-          getBookedRideList();
-        }
+        getVehiclesList();
+        getGovtIdTypeList();
+        getBookedRideList();
         dispatch(setProfile({ profile: res.data }));
       }
     } catch (error) {

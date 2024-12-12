@@ -102,7 +102,7 @@ const Vehicles = () => {
 				plate_number: newVehicle.plateNo,
 				color: newVehicle.color,
 				state: newVehicle.state,
-				number_of_seats: newVehicle.number_of_seats
+				number_of_seats: 4,
 			}
 
 			const res = await createVehicle({ actualData, access_token })
@@ -333,7 +333,7 @@ const Vehicles = () => {
 							/>
 						</Grid>
 					</Grid>
-					<Grid container spacing={2}>
+					{/* <Grid container spacing={2}>
 						<Grid size={12}>
 							<TextField
 								label="No of seats"
@@ -344,7 +344,7 @@ const Vehicles = () => {
 								margin="normal"
 							/>
 						</Grid>
-					</Grid>
+					</Grid> */}
 					{isEdit ? <Button
 						variant="contained"
 						sx={{

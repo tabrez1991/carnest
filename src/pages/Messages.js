@@ -132,7 +132,7 @@ const WhatsAppChat = () => {
           </Typography>
           <List>
             {conversations.map((conversation, index) => (
-              <ListItem
+              conversation?.second_participant_name && <ListItem
                 button
                 key={index}
                 onClick={() => handleConversationClick(conversation)}
@@ -220,7 +220,7 @@ const WhatsAppChat = () => {
               borderTop: "1px solid #ddd",
               backgroundColor: "#fff",
               position: "sticky",
-              bottom: isMobile? 50 : 0,
+              bottom: isMobile ? 50 : 0,
               zIndex: 10,
             }}
           >

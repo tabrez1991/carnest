@@ -166,7 +166,7 @@ const AvailableRides = (props) => {
                 {ride.price_per_seat}
               </Typography>
               {console.log("ride", ride)}
-              {ride.available_seats === 0 ? <Box></Box> : isLoading && ride.id === selectedRide.id ? <Box sx={{ float: "right" }}><CircularProgress size={25} /></Box> : <Button
+              {ride.available_seats <= 1 ? <Box></Box> : isLoading && ride.id === selectedRide.id ? <Box sx={{ float: "right" }}><CircularProgress size={25} /></Box> : <Button
                 size="small"
                 variant="contained"
                 color="warning"

@@ -67,6 +67,18 @@ export const apiService = createApi({
         }
       }
     }),
+    cancelRide: builder.mutation({
+      query: ({ id, access_token }) => {
+        return {
+          url: `booking/${id}/cancel_ride/`,
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          }
+        }
+      }
+    }),
     createVehicle: builder.mutation({
       query: ({ actualData, access_token }) => {
         return {
@@ -183,4 +195,5 @@ export const {
   useGetConversationMutation,
   useSendMessageMutation,
   useGetConvoMessagesMutation,
+  useCancelRideMutation,
 } = apiService

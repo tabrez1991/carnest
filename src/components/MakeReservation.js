@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -21,21 +21,13 @@ import { NavLink } from 'react-router-dom';
 import { generateSeatList } from '../helper';
 
 const CarpoolBooking = (props) => {
-  const { handleBack, rideBookId } = props
-
-  const seatMapping = {
-    "front passenger": 1,
-    "back right": 2,
-    "back left": 3,
-    "middle right": 4,
-    "middle left": 5,
-    "back middle": 6,
-  };
+  const { handleBack, rideBookId } = props;
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState("success")
+  const [render, setRender] = useState(false);
 
   const { access_token, profile } = useSelector((state) => state.auth);
   const { rideDetails } = useSelector((state) => state.apiSlice);
@@ -47,7 +39,7 @@ const CarpoolBooking = (props) => {
   const toggleSeatSelection = (seat) => {
     if (selectedSeats.includes(seat)) {
       setSelectedSeats(selectedSeats.filter((s) => s !== seat));
-    } else if (selectedSeats.length < rideDetails?.available_seats) {
+    } else if (selectedSeats.length < rideDetails?.total_number_of_seats - 1) {
       setSelectedSeats([...selectedSeats, seat]);
     }
   };
@@ -57,6 +49,11 @@ const CarpoolBooking = (props) => {
       return;
     }
     setOpen(false);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedSeats([]);
+    setRender(!render);
   };
 
   const formatDate = (isoString) => {
@@ -81,17 +78,25 @@ const CarpoolBooking = (props) => {
   };
 
   const handleMakeReservation = async () => {
-    const bookedSeatNumbers = selectedSeats.map((seat) => seatMapping[seat]);
+    const nonBookedSeats = availableSeats.filter(
+      (seat) => !rideDetails?.passengers.some((passenger) =>
+        passenger.selected_seats.includes(seat)
+      )
+    );
+
+    console.log(nonBookedSeats);
+    const seatPayload = nonBookedSeats.reduce((acc, seat, index) => {
+      acc[`seat_${index + 4}`] = selectedSeats.includes(seat);
+      return acc;
+    }, {});
+
     try {
       const actualData = {
         ride: rideBookId,
         passenger: profile.id,
-        seat_2: false,
-        seat_3: true,
-        seat_4: true,
+        ...seatPayload,
         additional_notes: rideDetails.ride_description,
       }
-      console.log(actualData)
       const res = await bookRide({ actualData, access_token });
       if (res.error) {
         setMessage(res.error.data.errors);
@@ -109,8 +114,23 @@ const CarpoolBooking = (props) => {
     }
   }
 
+  useEffect(() => {
+    if (rideDetails && rideDetails.passengers?.length > 0) {
+      const bookedSeats = []; // Temporary array to collect booked seats
+      rideDetails.passengers.forEach((passenger) => {
+        console.log("element", passenger.selected_seats);
+        passenger?.selected_seats.forEach((seat) => {
+          if (!bookedSeats.includes(seat)) { // Avoid duplicates
+            bookedSeats.push(seat);
+          }
+        });
+      });
+      setSelectedSeats(bookedSeats);
+    }
+  }, [rideDetails, render])
+
   return (
-    <Box>
+    <Box sx={{ height: "100%", backgroundColor: "#f0f2f5" }}>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={open} autoHideDuration={6000} onClose={handleClose}>
         <Alert
           onClose={handleClose}
@@ -121,16 +141,20 @@ const CarpoolBooking = (props) => {
           {message}
         </Alert>
       </Snackbar>
-      <Box sx={{ padding: 3, width: "100%", margin: 'auto', fontFamily: 'Roboto' }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography onClick={() => handleBack('reservation')} sx={{ mr: 2 }}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>
-          {/* Header */}
-          <Typography variant="h6" gutterBottom>
-            {formatDate(rideDetails?.date_time)}
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", width: "100%" }}>
-          <Box sx={{ width: "70%" }}>
+      <Box sx={{
+        padding: 3, maxWidth: 800, margin: 'auto', fontFamily: 'Roboto', display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        gap: 2,
+      }}>
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Typography onClick={() => handleBack('reservation')} sx={{ mr: 2 }}><FaArrowLeft style={{ marginRight: 5, cursor: "pointer" }} /></Typography>
+            {/* Header */}
+            <Typography variant="h6" gutterBottom>
+              {formatDate(rideDetails?.date_time)}
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography>
                 <strong>{rideDetails.going_from}</strong>
@@ -182,7 +206,7 @@ const CarpoolBooking = (props) => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar
                       sx={{ mr: 2 }}
-                      src={`${process.env.REACT_APP_BASE_URL}/${rideDetails.avatar}`}
+                      src={`${process.env.REACT_APP_BASE_URL}/${rideDetails.driver_profile_pic}`}
                     >
                       {rideDetails?.driver_name?.[0]}
                     </Avatar>
@@ -190,9 +214,9 @@ const CarpoolBooking = (props) => {
                       <Typography variant="body1">
                         <strong>{rideDetails.driver_name}</strong>
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      {/* <Typography variant="body2" color="text.secondary">
                         4.5/5 Rating
-                      </Typography>
+                      </Typography> */}
                     </Box>
                   </Box>
                   <NavLink to={'/Messages'}>
@@ -215,106 +239,108 @@ const CarpoolBooking = (props) => {
                 <Box>
                   <Typography variant="body2">
                     Other passengers:
-                    <strong> John Cena, Michael J</strong>
+                    <strong>{rideDetails.passengers.map(item => item.passenger_name).join(',')}</strong>
                   </Typography>
                 </Box>
               </CardContent>
             </Card>
           </Box>
-          {/* Seat Picker */}
-          <Box sx={{ width: "30%" }}>
-            <Box sx={{ m: 3, background: "#fff", borderRadius: "10px", p: 2, textAlign: "center" }}>
-              <Typography variant="h6" gutterBottom>
-                Car Seat Picker
-              </Typography>
+        </Box>
+        {/* Seat Picker */}
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ background: "#fff", borderRadius: "10px", p: 2, textAlign: "center", width: 400, margin: "auto" }}>
+            <Typography variant="h6" gutterBottom>
+              Car Seat Picker
+            </Typography>
+            <Box
+              sx={{
+                background: "#dbb16459",
+                borderRadius: "10px",
+                p: "8px 16px",
+              }}
+            >
               <Box
                 sx={{
-                  background: "#dbb16459",
+                  background: "#FFF",
+                  p: 2,
+                  border: "1px solid black",
                   borderRadius: "10px",
-                  p: "8px 16px",
+                  margin: "auto",
+                  width: "60%",
+                  display: "flex",
+                  flexWrap: "wrap", // Wrap items into rows
+                  justifyContent: "space-between", // Space between columns
+                  gap: 2, // Adjust spacing between items
                 }}
               >
-                <Box
+                {/* Fixed Button */}
+                <Button
+                  variant="contained"
                   sx={{
-                    background: "#FFF",
-                    p: 2,
-                    border: "1px solid black",
-                    borderRadius: "10px",
-                    margin: "auto",
-                    width: "60%",
-                    display: "flex",
-                    flexWrap: "wrap", // Wrap items into rows
-                    justifyContent: "space-between", // Space between columns
-                    gap: 2, // Adjust spacing between items
+                    textTransform: "capitalize",
+                    fontSize: "0.9rem",
+                    width: "30%",
+                    height: "50px",
+                    bgcolor: "#dbb16459",
+                    color: "black",
                   }}
                 >
-                  {/* Fixed Button */}
+                  <FaCircle />
+                </Button>
+
+                {/* Iterative Buttons */}
+                {availableSeats.map((seat, index) => (
                   <Button
-                    variant="contained"
+                    key={index}
+                    onClick={() => toggleSeatSelection(seat)}
+                    variant={selectedSeats.includes(seat) ? "contained" : "outlined"}
                     sx={{
                       textTransform: "capitalize",
                       fontSize: "0.9rem",
-                      width: "30%",
+                      width: "40%", // Two columns layout
                       height: "50px",
-                      bgcolor: "#dbb16459",
-                      color: "black",
+                      bgcolor: selectedSeats.includes(seat) ? "orange" : "#dbb16459",
+                      color: selectedSeats.includes(seat) ? "white" : "black",
+                      mt: index > 0 ? 7 : 0
                     }}
                   >
-                    <FaCircle />
                   </Button>
-
-                  {/* Iterative Buttons */}
-                  {availableSeats.map((seat, index) => (
-                    <Button
-                      key={index}
-                      onClick={() => toggleSeatSelection(seat)}
-                      variant={selectedSeats.includes(seat) ? "contained" : "outlined"}
-                      sx={{
-                        textTransform: "capitalize",
-                        fontSize: "0.9rem",
-                        width: "40%", // Two columns layout
-                        height: "50px",
-                        bgcolor: selectedSeats.includes(seat) ? "orange" : "#dbb16459",
-                        color: selectedSeats.includes(seat) ? "white" : "black",
-                      }}
-                    >
-
-                    </Button>
-                  ))}
-                </Box>
+                ))}
               </Box>
+            </Box>
 
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                You selected: {selectedSeats.join(', ')}
-              </Typography>
-              <Button
-                variant="contained"
-                sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none', background: "orange", mt: 2, mb: 2 }}
-              >
-                Clear Selection
-              </Button>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ color: "#dbb16459" }}><FaSquare /> <span style={{ color: "black" }}>Available</span></Typography>
-                <Typography sx={{ color: "orange" }}><FaSquare /> <span style={{ color: "black" }}>Selected</span></Typography>
-                <Typography sx={{ color: "grey" }}><FaSquare /> <span style={{ color: "black" }}>Blocked</span></Typography>
-              </Box>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              You selected: {selectedSeats.join(', ')}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleClearSelection}
+              sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none', background: "orange", mt: 2, mb: 2 }}
+            >
+              Clear Selection
+            </Button>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography sx={{ color: "#dbb16459" }}><FaSquare /> <span style={{ color: "black" }}>Available</span></Typography>
+              <Typography sx={{ color: "orange" }}><FaSquare /> <span style={{ color: "black" }}>Selected</span></Typography>
+              <Typography sx={{ color: "grey" }}><FaSquare /> <span style={{ color: "black" }}>Blocked</span></Typography>
             </Box>
           </Box>
         </Box>
+      </Box>
 
-        {/* Make Reservation Button */}
-        <Box>
-          {isLoading ? <CircularProgress /> :
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none' }}
-              onClick={handleMakeReservation}
-            >
-              Make Reservation
-            </Button>}
-        </Box>
+
+      {/* Make Reservation Button */}
+      <Box>
+        {isLoading ? <CircularProgress /> :
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ py: 1.5, fontSize: '1rem', textTransform: 'none', mb: 8 }}
+            onClick={handleMakeReservation}
+          >
+            Make Reservation
+          </Button>}
       </Box>
     </Box>
   );
