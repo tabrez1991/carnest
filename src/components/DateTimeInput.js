@@ -17,7 +17,7 @@ const DateTimeInput = (props) => {
     const utcDateTime = new Date(newValue).toISOString();
     console.log("UTC Date-Time for Backend:", utcDateTime);
 
-    handleDateTime(localDateTime); // Send UTC time to your backend
+    handleDateTime(utcDateTime); // Send UTC time to your backend
   };
 
   const formatDate = (date) => {

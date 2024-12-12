@@ -1,62 +1,143 @@
-import React, { useState } from "react";
+import React from "react";
+import {
+  Box,
+  Typography,
+  Modal,
+  Paper,
+  Button,
+  Divider,
+  Stack,
+  Chip,
+} from "@mui/material";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PriceCheckIcon from "@mui/icons-material/PriceCheck";
+import EventIcon from "@mui/icons-material/Event";
 
 const ViewRide = (props) => {
-    const { ride, handleCloseModal } = props;
+  const { ride, handleCloseModal } = props;
 
-    console.log("view ride",ride)
-    return (
-        <div style={{ padding: "20px" }}>
-            <h2>Ride Details</h2>
-            <div
-                style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                <div
-                    style={{
-                        background: "#fff",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        width: "400px",
-                        textAlign: "left",
-                    }}
-                >
-                    <h3>Ride Details</h3>
-                    <p><strong>Driver:</strong> {ride.driver_name}</p>
-                    <p><strong>From:</strong> {ride.going_from}</p>
-                    <p><strong>To:</strong> {ride.going_to}</p>
-                    <p><strong>Date:</strong> {new Date(ride.ride_date).toLocaleString()}</p>
-                    <p><strong>Passenger:</strong> {ride.Passenger_name}</p>
-                    <p><strong>Seats Selected:</strong> {ride.selected_seats.join(", ")}</p>
-                    <p><strong>Total Price:</strong> ₹{ride.total_price}</p>
-                    <p><strong>Status:</strong> {ride.status}</p>
-                    <p><strong>Notes:</strong> {ride.additional_notes}</p>
-                    <button
-                        onClick={handleCloseModal}
-                        style={{
-                            background: "#f44336",
-                            color: "#fff",
-                            padding: "10px 20px",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            marginTop: "10px",
-                        }}
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "confirmed":
+        return "success";
+      case "pending":
+        return "warning";
+      case "cancelled":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  return (
+    <Modal
+      open={true}
+      onClose={handleCloseModal}
+      aria-labelledby="ride-details-modal"
+      aria-describedby="ride-details-description"
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          bgcolor: "rgba(0, 0, 0, 0.5)",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            width: "400px",
+            padding: "24px",
+            borderRadius: "8px",
+          }}
+        >
+          <Typography
+            id="ride-details-modal"
+            variant="h5"
+            gutterBottom
+            align="center"
+            sx={{ fontWeight: "bold" }}
+          >
+            Ride Details
+          </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Stack spacing={2}>
+            <Typography>
+              <strong>Driver:</strong> {ride.driver_name}
+            </Typography>
+            <Typography>
+              <strong>From:</strong> {ride.going_from}
+            </Typography>
+            <Typography>
+              <strong>To:</strong> {ride.going_to}
+            </Typography>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <EventIcon color="primary" />
+              <Typography>
+                <strong>Date:</strong> {new Date(ride.ride_date).toLocaleDateString()}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <AccessTimeIcon color="secondary" />
+              <Typography>
+                <strong>Time:</strong> {new Date(ride.ride_date).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Typography>
+            </Stack>
+
+            <Typography>
+              <strong>Passenger:</strong> {ride.Passenger_name}
+            </Typography>
+            <Typography>
+              <strong>Seats Selected:</strong> {ride.selected_seats.join(", ")}
+            </Typography>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <PriceCheckIcon color="success" />
+              <Typography>
+                <strong>Total Price:</strong> ₹{ride.total_price}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography>
+                <strong>Status:</strong>
+              </Typography>
+              <Chip
+                label={ride.status}
+                color={getStatusColor(ride.status)}
+                variant="outlined"
+              />
+            </Stack>
+
+            <Typography>
+              <strong>Notes:</strong> {ride.additional_notes}
+            </Typography>
+          </Stack>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Button
+            onClick={handleCloseModal}
+            variant="contained"
+            color="error"
+            fullWidth
+            sx={{ mt: 2, textTransform: "none" }}
+          >
+            Close
+          </Button>
+        </Paper>
+      </Box>
+    </Modal>
+  );
 };
 
 export default ViewRide;

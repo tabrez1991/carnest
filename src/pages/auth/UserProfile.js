@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useTheme } from "@mui/system";
+import { useMediaQuery, useTheme } from "@mui/system";
 import { useDispatch, useSelector } from "react-redux";
 import LocationSearchInput from "../../components/LocationSearchInput";
 import { useUpdateUserProfileMutation } from "../../services/userAuthApi";
@@ -21,6 +21,7 @@ import { setProfile } from "../../features/authSlice";
 
 const UserProfile = () => {
 	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const { profile, access_token, govtIdTypes } = useSelector((state) => state.auth);
 
 	const [open, setOpen] = useState(false);
@@ -108,12 +109,12 @@ const UserProfile = () => {
 
 			// API call
 			const res = await updateUserProfile({ actualData: data, access_token, user: id });
-
+			console.log("user profile",res)
 			// Handle API response
-			if (res.errors) {
+			if (res.error) {
 				// Check if errors exist in response and display appropriate message
 				const errorMessage = res.error?.data?.errors || "Failed to save changes. Please try again.";
-				setMessage(errorMessage);
+				setMessage(JSON.stringify(errorMessage));
 				setSeverity("error");
 				setOpen(true);
 			} else if (res.data) {
@@ -165,8 +166,8 @@ const UserProfile = () => {
 					alignItems: "center",
 					justifyContent: "center",
 					height: "100vh",
-					backgroundColor: "#f0f2f5",
-					padding: theme.spacing(2),
+					backgroundColor: isMobile ? "#fff" : "#f0f2f5",
+					padding: isMobile ? 0 : theme.spacing(2),
 				}}
 			>
 				<Box
@@ -301,7 +302,7 @@ const UserProfile = () => {
 							backgroundColor: "#FF6436",
 							color: "white",
 							marginTop: theme.spacing(2),
-							marginBottom: theme.spacing(1),
+							marginBottom: isMobile ? "40px" : theme.spacing(1),
 							"&:hover": {
 								backgroundColor: "#36a420",
 							},

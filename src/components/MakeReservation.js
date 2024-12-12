@@ -20,12 +20,13 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { FaArrowLeft, FaCircle, FaSquare } from "react-icons/fa";
 import { useBookRideMutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { generateSeatList } from '../helper';
 
 const CarpoolBooking = (props) => {
   const { handleBack, rideBookId } = props;
 
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -42,11 +43,36 @@ const CarpoolBooking = (props) => {
 
   const [bookRide, { isLoading }] = useBookRideMutation();
 
+  const getSelectedSeat = () => {
+    const bookedSeats = availableSeats.filter(
+      (seat) =>
+        rideDetails?.passengers.some((passenger) =>
+          passenger.selected_seats.includes(seat)
+        )
+    );
+    console.log("bookedSeats", bookedSeats)
+    console.log("selectedSeat", selectedSeats);
+    const result = selectedSeats.filter(item => !bookedSeats.includes(item));
+    return result
+  }
+
   const toggleSeatSelection = (seat) => {
-    if (selectedSeats.includes(seat)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== seat));
-    } else if (selectedSeats.length < rideDetails?.total_number_of_seats - 1) {
-      setSelectedSeats([...selectedSeats, seat]);
+    const nonBookedSeats = availableSeats.filter(
+      (seat) =>
+        !rideDetails?.passengers.some((passenger) =>
+          passenger.selected_seats.includes(seat)
+        )
+    );
+    if (nonBookedSeats.includes(seat)) {
+      if (selectedSeats.includes(seat)) {
+        setSelectedSeats(selectedSeats.filter((s) => s !== seat));
+      } else if (selectedSeats.length < rideDetails?.total_number_of_seats - 1) {
+        setSelectedSeats([...selectedSeats, seat]);
+      }
+    } else {
+      setMessage("You cannot select booked seat");
+      setOpen(true);
+      setSeverity("error");
     }
   };
 
@@ -73,9 +99,9 @@ const CarpoolBooking = (props) => {
     const minutes = parseInt(withinTime.replace("m", "")); // Extract minutes from "18m"
     const endTime = new Date(startTime.getTime() + minutes * 60 * 1000); // Add minutes to start time
 
-    // Format the time only
+    // Format the time only with AM/PM
     const formatTime = (date) =>
-      date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 
     return {
       startTime: formatTime(startTime),
@@ -127,13 +153,12 @@ const CarpoolBooking = (props) => {
         setMessage("Ride booked successfully");
         setOpen(true);
         setSeverity("success");
-        handleBack();
+        navigate(`/YourRides`);
       }
     } catch (error) {
       console.error(error);
     }
   };
-
 
   useEffect(() => {
     if (rideDetails && rideDetails.passengers?.length > 0) {
@@ -182,9 +207,15 @@ const CarpoolBooking = (props) => {
                   <strong>{rideDetails.going_from}</strong>
                 </Typography>
               </Tooltip>
-              <Typography>
-                {rideDetails.within_time} ({rideDetails.within_distance}Km)
-              </Typography>
+              <Box sx={{ textAlign: "center", mr: 2, ml: 2 }}>
+                <Typography>
+                  {rideDetails.within_time}
+                </Typography>
+                <Typography>
+                  ({rideDetails.within_distance}Km)
+                </Typography>
+              </Box>
+
               <Tooltip title={rideDetails.going_to || ''} placement="top">
                 <Typography sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
                   <strong>{rideDetails.going_to}</strong>
@@ -215,7 +246,7 @@ const CarpoolBooking = (props) => {
                 <FaCircle />
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, ml: 3, mr: 3, position: 'relative' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, ml: 1, mr: 1, position: 'relative' }}>
               <Typography sx={{ fontWeight: 700 }}>{calculateStartAndEndTime(rideDetails.date_time, rideDetails.within_time).startTime}</Typography>
               <Typography sx={{ fontWeight: 700 }}>{calculateStartAndEndTime(rideDetails.date_time, rideDetails.within_time).endTime}</Typography>
             </Box>
@@ -336,7 +367,8 @@ const CarpoolBooking = (props) => {
             </Box>
 
             <Typography variant="body2" sx={{ mt: 1 }}>
-              You selected: {selectedSeats.join(', ')}
+              You selected: {getSelectedSeat().join(', ')}
+              {/* selectedSeats.join(', ')} */}
             </Typography>
             <Button
               variant="contained"
@@ -356,8 +388,10 @@ const CarpoolBooking = (props) => {
 
 
       {/* Make Reservation Button */}
-      <Box>
-        {isLoading ? <CircularProgress /> :
+      <Box sx={{
+        padding: 3, maxWidth: 800, margin: 'auto',
+      }}>
+        {isLoading ? <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /> </Box> :
           <Button
             variant="contained"
             color="primary"

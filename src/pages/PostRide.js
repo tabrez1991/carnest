@@ -60,6 +60,7 @@ const PostRide = () => {
 			vehicle: formData.vehicle,
 			ride_description: formData.rideDescription,
 		};
+console.log(actualData);
 
 		const res = await postRide({ actualData, access_token });
 		console.log(res)
