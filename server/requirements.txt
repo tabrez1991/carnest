@@ -1,0 +1,15 @@
+Django
+django-rest-framework
+djangorestframework-simplejwt
+django-cors-headers
+psycopg[binary]
+asgiref
+django-cors-headers
+django-dotenv
+PyJWT
+pytz
+sqlparse
+tzdata
+python-dotenv
+requests
+Pillow
