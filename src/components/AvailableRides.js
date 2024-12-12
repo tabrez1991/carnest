@@ -15,6 +15,7 @@ import { GoogleMap, DirectionsRenderer, useJsApiLoader } from "@react-google-map
 import { useDispatch, useSelector } from "react-redux";
 import { useGetRidesByIdMutation } from "../services/apiService";
 import { setRideDetails } from "../features/apiSlice";
+import { format } from "date-fns";
 
 const center = { lat: 36.7783, lng: -119.4179 }; // California center for initial map view
 
@@ -150,7 +151,7 @@ const AvailableRides = (props) => {
               onClick={() => handleSelectRide(ride)}
             >
               <Typography variant="subtitle2">
-                {ride.date_time.split("T")[1].replace("Z", "").slice(0, -3)} • {ride.going_from}
+                {format(new Date(ride.date_time), "hh:mm")} • {ride.going_from}
               </Typography>
               <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 1 }}>
                 {ride.duration}

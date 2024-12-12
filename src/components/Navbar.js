@@ -150,7 +150,7 @@ const Navbar = () => {
   }, [])
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'background.paper', borderRadius: '30px', boxShadow: 'none' }}>
+    <AppBar position="static" sx={{ backgroundColor: 'background.paper', borderRadius: '30px', boxShadow: 'none', zIndex: 1001 }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
 
         {/* Logo and Brand Name */}
