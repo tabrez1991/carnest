@@ -120,9 +120,9 @@ const CarpoolBooking = (props) => {
   const handleMakeReservation = async () => {
     // Map seat positions explicitly to their real-world locations
     const seatMapping = {
-      'Front Right': 1, // Front-right maps to seat index 1
-      'Back Left': 2,   // Back-left maps to seat index 2
-      'Back Right': 3,  // Back-right maps to seat index 3
+      'Front Right': 2, // Front-right maps to seat index 1
+      'Back Left': 3,   // Back-left maps to seat index 2
+      'Back Right': 4,  // Back-right maps to seat index 3
     };
   
     // Get all booked seat names from ride details
