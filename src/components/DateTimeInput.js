@@ -35,6 +35,30 @@ const DateTimeInput = (props) => {
         label="Select Date & Time"
         value={value ? new Date(value) : null} // Convert string value to Date object
         onChange={handleDateTimeChange}
+        minDateTime={new Date()} // Disable past dates and times
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            fullWidth
+            required
+            id={id}
+            name={name}
+            variant="outlined"
+            margin="normal"
+            InputLabelProps={{
+              shrink: true, // Ensure label behaves like a placeholder
+            }}
+            value={formatDate(value)} // Display formatted local date
+            error={Boolean(serverError?.dateTime)}
+            helperText={serverError?.dateTime ? serverError.dateTime[0] : ""}
+          />
+        )}
+      />
+      {/* <DateTimePicker
+        sx={{ width: "100%" }}
+        label="Select Date & Time"
+        value={value ? new Date(value) : null} // Convert string value to Date object
+        onChange={handleDateTimeChange}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -49,7 +73,7 @@ const DateTimeInput = (props) => {
             helperText={serverError?.dateTime ? serverError.dateTime[0] : ""}
           />
         )}
-      />
+      /> */}
     </LocalizationProvider>
   );
 };

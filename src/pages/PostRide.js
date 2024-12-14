@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMediaQuery, useTheme } from '@mui/system';
-import { Alert, Box, Button, CircularProgress, MenuItem, Select, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, FormControl, InputLabel, MenuItem, Select, Snackbar, TextField, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import { usePostRideMutation } from "../services/apiService";
 import { useSelector } from "react-redux";
@@ -17,15 +17,17 @@ const PostRide = () => {
 		goingFrom: "",
 		goingFromLat: "",
 		goingFromLng: "",
+		goingFromWithinDistance: "",
 		goingTo: "",
 		goingToLat: "",
 		goingToLng: "",
+		goingToWithinDistance: "",
 		dateTime: "",
 		pricePerSeat: "",
 		availableNoOfSeats: "",
 		vehicle: "",
 		rideDescription: "",
-		range_in_km: ""
+		// range_in_km: ""
 	});
 	const [serverError, setServerError] = useState({});
 
@@ -52,15 +54,17 @@ const PostRide = () => {
 			going_from: formData.goingFrom,
 			going_from_lat: formData.goingFromLat,
 			going_from_lng: formData.goingFromLng,
+			going_from_within: formData.goingFromWithinDistance,
 			going_to: formData.goingTo,
 			going_to_lat: formData.goingToLat,
 			going_to_lng: formData.goingToLng,
+			going_to_within: formData.goingToWithinDistance,
 			date_time: formData.dateTime,
 			price_per_seat: formData.pricePerSeat,
 			vehicle: formData.vehicle,
 			ride_description: formData.rideDescription,
 		};
-console.log(actualData);
+		console.log(actualData);
 
 		const res = await postRide({ actualData, access_token });
 		console.log(res)
@@ -71,14 +75,18 @@ console.log(actualData);
 			setOpen(true);
 			setFormData({
 				goingFrom: "",
+				goingFromLat: "",
+				goingFromLng: "",
 				goingFromWithinDistance: "",
 				goingTo: "",
+				goingToLat: "",
+				goingToLng: "",
 				goingToWithinDistance: "",
 				dateTime: "",
 				pricePerSeat: "",
 				availableNoOfSeats: "",
 				vehicle: "",
-				rideDescription: ""
+				rideDescription: "",
 			})
 		}
 	}
@@ -147,36 +155,39 @@ console.log(actualData);
 						<LocationSearchInput id="goingFrom" name="goingFrom" label="Going From" value={formData.goingFrom} handleLatLng={handleLatLng} handleAddress={handleAddress} />
 					</Grid>
 					<Grid size={6}>
-						<LocationSearchInput id="goingTo" name="goingTo" label="Going To" value={formData.goingTo} handleLatLng={handleLatLng} handleAddress={handleAddress} />
-					</Grid>
-				</Grid>
-				{/* <Grid container spacing={2}>
-					<Grid size={6}>
 						<TextField
 							fullWidth
-							required
-							id="goingTo"
-							name="goingTo"
-							label="Going To"
+							id="goingFromWithinDistance"
+							name="goingFromWithinDistance"
+							label="Within Distance in Km"
 							variant="outlined"
 							margin="normal"
-							error={Boolean(serverError.goingTo)}
-							helperText={serverError.goingTo ? serverError.goingTo[0] : ''}
+							value={formData.goingFromWithinDistance}
+							onChange={(e) => setFormData((prev) => ({ ...prev, goingFromWithinDistance: e.target.value }))}
+							error={Boolean(serverError.goingFromWithinDistance)}
+							helperText={serverError.goingFromWithinDistance ? serverError.goingFromWithinDistance[0] : ''}
 						/>
+					</Grid>
+				</Grid>
+				<Grid container spacing={2}>
+					<Grid size={6}>
+						<LocationSearchInput id="goingTo" name="goingTo" label="Going To" value={formData.goingTo} handleLatLng={handleLatLng} handleAddress={handleAddress} />
 					</Grid>
 					<Grid size={6}>
 						<TextField
 							fullWidth
 							id="goingToWithinDistance"
 							name="goingToWithinDistance"
-							label="Within Distance"
+							label="Within Distance in Km"
 							variant="outlined"
 							margin="normal"
+							value={formData.goingToWithinDistance}
+							onChange={(e) => setFormData((prev) => ({ ...prev, goingToWithinDistance: e.target.value }))}
 							error={Boolean(serverError.goingToWithinDistance)}
 							helperText={serverError.goingToWithinDistance ? serverError.goingToWithinDistance[0] : ''}
 						/>
 					</Grid>
-				</Grid> */}
+				</Grid>
 				<Grid container spacing={2}>
 					<Grid size={6}>
 						<Box sx={{ mt: 2, width: "100%" }}>
@@ -220,7 +231,7 @@ console.log(actualData);
 				</Grid>
 				<Grid container spacing={2}>
 					{/* <Grid size={6}> */}
-						{/* <TextField
+					{/* <TextField
 							fullWidth
 							required
 							id="availableNoOfSeats"
@@ -235,24 +246,33 @@ console.log(actualData);
 						/> */}
 					{/* </Grid> */}
 					<Grid size={12}>
-						<Select
+						<FormControl
 							fullWidth
 							required
-							id="vehicle"
-							name="vehicle"
-							value={formData.vehicle}
-							onChange={handleChange}
-							displayEmpty
 							sx={{ mt: 2, textAlign: "left" }}
-							variant="outlined"
 							error={Boolean(serverError.availableNoOfSeats)}
-							helperText={serverError.availableNoOfSeats ? serverError.availableNoOfSeats[0] : ''}
 						>
-							<MenuItem value="" disabled>
-								Select Vehicle
-							</MenuItem>
-							{vehiclesList?.map(item => (<MenuItem key={item.id} value={item.id}>{item.model}</MenuItem>))}
-						</Select>
+							<InputLabel id="vehicle-label">Select Vehicle</InputLabel>
+							<Select
+								labelId="vehicle-label"
+								fullWidth
+								label="Select Vehicle"
+								required
+								id="vehicle"
+								name="vehicle"
+								value={formData.vehicle}
+								onChange={handleChange}
+								displayEmpty
+								variant="outlined"
+								error={Boolean(serverError.availableNoOfSeats)}
+								helperText={serverError.availableNoOfSeats ? serverError.availableNoOfSeats[0] : ''}
+							>
+								<MenuItem value="" disabled>
+									Select Vehicle
+								</MenuItem>
+								{vehiclesList?.map(item => (<MenuItem key={item.id} value={item.id}>{item.model}</MenuItem>))}
+							</Select>
+						</FormControl>
 					</Grid>
 				</Grid>
 				{/* <TextField
