@@ -96,21 +96,21 @@ const CarpoolBooking = (props) => {
   const calculateStartAndEndTime = (dateTime, withinTime) => {
     // Parse the given start date and time
     const startTime = new Date(dateTime);
-  
+
     // Extract hours and minutes from the withinTime string (e.g., "4h 38m")
     const hoursMatch = withinTime.match(/(\d+)h/); // Extract hours
     const minutesMatch = withinTime.match(/(\d+)m/); // Extract minutes
-  
+
     const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0; // Default to 0 if no hours
     const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0; // Default to 0 if no minutes
-  
+
     // Calculate the end time by adding hours and minutes
     const endTime = new Date(startTime.getTime() + (hours * 60 + minutes) * 60 * 1000);
-  
+
     // Format the time only with AM/PM
     const formatTime = (date) =>
       date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-  
+
     return {
       startTime: formatTime(startTime),
       endTime: formatTime(endTime),
@@ -120,37 +120,36 @@ const CarpoolBooking = (props) => {
   const handleMakeReservation = async () => {
     // Map seat positions explicitly to their real-world locations
     const seatMapping = {
-      'Front Right': "seat_2", // Front-right
-      'Back Left': "seat_3", // Back-left
-      'Back Right': "seat_4", // Back-right
+      'Front Right': 1, // Front-right maps to seat index 1
+      'Back Left': 2,   // Back-left maps to seat index 2
+      'Back Right': 3,  // Back-right maps to seat index 3
     };
-
-    // Get non-booked seats
-    const nonBookedSeats = availableSeats.filter(
-      (seat) =>
-        !rideDetails?.passengers.some((passenger) =>
-          passenger.selected_seats.includes(seat)
-        )
-    );
-
-    // Prepare seat payload using the correct seat mapping
-    const seatPayload = nonBookedSeats.reduce((acc, seat, index) => {
-      const seatKey = seatMapping[seat]; // Map seat index to its correct position
-      if (seatKey) {
-        acc[seatKey] = selectedSeats.includes(seat); // Check if seat is selected
-      }
-      return acc;
-    }, {});
-
-
+  
+    // Get all booked seat names from ride details
+    const bookedSeats = rideDetails?.passengers.flatMap((passenger) => passenger.selected_seats) || [];
+  
+    // Filter selectedSeats to include only those not already booked
+    const availableSelectedSeats = selectedSeats.filter((seat) => !bookedSeats.includes(seat));
+  
+    // Map available seats to indices for backend
+    const bookedSeatIndices = availableSelectedSeats.map((seat) => seatMapping[seat]);
+  
+    // If no available seats are selected, show an error
+    if (bookedSeatIndices.length === 0) {
+      setMessage("No available seats selected.");
+      setOpen(true);
+      setSeverity("error");
+      return;
+    }
+  
     try {
       const actualData = {
         ride: rideBookId,
         passenger: profile.id,
-        ...seatPayload,
+        booked_seat: bookedSeatIndices, // Array of unbooked seat indices
         additional_notes: rideDetails.ride_description,
       };
-
+  
       const res = await bookRide({ actualData, access_token });
       if (res.error) {
         setMessage(res.error.data.errors);
@@ -163,11 +162,13 @@ const CarpoolBooking = (props) => {
         setSeverity("success");
         setTimeout(() => {
           navigate(`/YourRides`);
-     
         }, 1000);
       }
     } catch (error) {
       console.error(error);
+      setMessage("An error occurred while booking the ride.");
+      setOpen(true);
+      setSeverity("error");
     }
   };
 
