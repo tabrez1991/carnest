@@ -94,15 +94,23 @@ const CarpoolBooking = (props) => {
   };
 
   const calculateStartAndEndTime = (dateTime, withinTime) => {
-    // Parse the given date and duration
-    const startTime = new Date(dateTime); // Start time
-    const minutes = parseInt(withinTime.replace("m", "")); // Extract minutes from "18m"
-    const endTime = new Date(startTime.getTime() + minutes * 60 * 1000); // Add minutes to start time
-
+    // Parse the given start date and time
+    const startTime = new Date(dateTime);
+  
+    // Extract hours and minutes from the withinTime string (e.g., "4h 38m")
+    const hoursMatch = withinTime.match(/(\d+)h/); // Extract hours
+    const minutesMatch = withinTime.match(/(\d+)m/); // Extract minutes
+  
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0; // Default to 0 if no hours
+    const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0; // Default to 0 if no minutes
+  
+    // Calculate the end time by adding hours and minutes
+    const endTime = new Date(startTime.getTime() + (hours * 60 + minutes) * 60 * 1000);
+  
     // Format the time only with AM/PM
     const formatTime = (date) =>
       date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-
+  
     return {
       startTime: formatTime(startTime),
       endTime: formatTime(endTime),
@@ -153,7 +161,10 @@ const CarpoolBooking = (props) => {
         setMessage("Ride booked successfully");
         setOpen(true);
         setSeverity("success");
-        navigate(`/YourRides`);
+        setTimeout(() => {
+          navigate(`/YourRides`);
+     
+        }, 1000);
       }
     } catch (error) {
       console.error(error);

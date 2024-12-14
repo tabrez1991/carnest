@@ -41,7 +41,7 @@ const Search = () => {
 		if (!formData.going_to) errors.going_to = "Going to location is required.";
 		if (!formData.date) errors.date = "Date is required.";
 		if (!formData.seats) errors.seats = "Number of passengers is required.";
-		if (!formData.range_in_km) errors.range_in_km = "Range in km is required.";
+		// if (!formData.range_in_km) errors.range_in_km = "Range in km is required.";
 		setValidationErrors(errors);
 		return Object.keys(errors).length === 0;
 	};
@@ -54,7 +54,6 @@ const Search = () => {
 	}
 
 	const handleBack = (path) => {
-		console.log(path)
 		if (path === 'available') {
 			setShowSearch(true);
 			setShowAvailable(false);
@@ -78,7 +77,7 @@ const Search = () => {
 			going_to_lng: formData.going_to_lng,
 			date: formData.date,
 			seats: formData.seats,
-			range_in_km: formData.range_in_km,
+			// range_in_km: formData.range_in_km,
 			token: access_token
 		};
 
@@ -173,11 +172,19 @@ const Search = () => {
 							id="date"
 							name="date"
 							type="date"
+							label="Date"
 							data-testid="date-input"
 							value={formData.date}
-							error={validationErrors.date}
+							error={Boolean(validationErrors.date)}
+							helperText={validationErrors.date}
 							variant="outlined"
 							margin="normal"
+							InputLabelProps={{
+								shrink: true, // Ensures the label floats properly
+							}}
+							inputProps={{
+								min: new Date().toISOString().split("T")[0], // Set today's date as the minimum
+							}}
 							onChange={(e) =>
 								setFormData((prev) => ({ ...prev, date: e.target.value }))
 							}
@@ -195,7 +202,7 @@ const Search = () => {
 								setFormData((prev) => ({ ...prev, seats: e.target.value }))
 							}
 						/>
-						<TextField
+						{/* <TextField
 							fullWidth
 							required
 							id="rangeInkms"
@@ -207,7 +214,7 @@ const Search = () => {
 							onChange={(e) =>
 								setFormData((prev) => ({ ...prev, range_in_km: e.target.value }))
 							}
-						/>
+						/> */}
 						<Box>
 							{isLoading ? (
 								<CircularProgress />

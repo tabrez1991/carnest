@@ -16,13 +16,14 @@ import {
 	Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useTheme } from '@mui/system';
+import { useMediaQuery, useTheme } from '@mui/system';
 import { useDispatch, useSelector } from "react-redux";
 import { useCreateVehicleMutation, useDeleteVehicleMutation, useGetVehicleMutation, useUpdateVehicleMutation } from "../services/apiService";
 import { setVehiclesList } from "../features/apiSlice";
 
 const Vehicles = () => {
 	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const [open, setOpen] = useState(false);
 	const [message, setMessage] = useState("");
@@ -107,9 +108,15 @@ const Vehicles = () => {
 
 			const res = await createVehicle({ actualData, access_token })
 			if (res.error) {
-				console.error(res.error.data.errors); // Display login error
+				console.error(res); // Display login error
+				setMessage(JSON.stringify(res.error.data));
+				setOpen(true);
+				setSeverity("error")
 				return; // Exit early on error
 			} else if (res.data) {
+				setMessage("Added Successfully");
+				setOpen(true);
+				setSeverity("success")
 				getVehiclesList()
 			}
 		} catch (error) {
@@ -186,7 +193,7 @@ const Vehicles = () => {
 				justifyContent: 'center',
 				height: '100vh',
 				backgroundColor: '#f0f2f5',
-				padding: theme.spacing(2),
+				padding: isMobile ? 0 : theme.spacing(2),
 				overflowY: 'scroll',
 				pt: 8
 			}}
@@ -208,11 +215,12 @@ const Vehicles = () => {
 				sx={{
 					width: '100%',
 					maxWidth: 640,
-					padding: theme.spacing(4),
+					padding: isMobile ? 0 : theme.spacing(4),
 					borderRadius: '8px',
 					backgroundColor: '#FFFFFF',
 					boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
 					textAlign: 'center',
+					mb: isMobile ? 5 : 0
 				}}
 			>
 				<Typography variant="h4" align="center" sx={{ p: 2, fontWeight: "bold", color: "#FF6436" }} gutterBottom>
