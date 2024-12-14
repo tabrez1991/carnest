@@ -8,10 +8,14 @@ import {
   Divider,
   Stack,
   Chip,
+  IconButton,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 import EventIcon from "@mui/icons-material/Event";
+import { NavLink } from "react-router-dom";
+import ChatIcon from '@mui/icons-material/Chat';
+
 
 const ViewRide = (props) => {
   const { ride, handleCloseModal } = props;
@@ -66,9 +70,17 @@ const ViewRide = (props) => {
           <Divider sx={{ my: 2 }} />
 
           <Stack spacing={2}>
-            <Typography>
-              <strong>Driver:</strong> {ride.driver_name}
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography>
+                <strong>Driver:</strong> {ride.driver_name}
+              </Typography>
+              <NavLink to={'/Messages'}>
+                <IconButton color="primary">
+                  <ChatIcon />
+                </IconButton>
+              </NavLink>
+            </Box>
+
             <Typography>
               <strong>From:</strong> {ride.going_from}
             </Typography>
@@ -103,7 +115,7 @@ const ViewRide = (props) => {
             <Stack direction="row" alignItems="center" spacing={1}>
               <PriceCheckIcon color="success" />
               <Typography>
-                <strong>Total Price:</strong> ₹{ride.total_price}
+                <strong>Total Price:</strong> ${ride.total_price}
               </Typography>
             </Stack>
 

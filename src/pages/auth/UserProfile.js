@@ -31,16 +31,16 @@ const UserProfile = () => {
 	const [severity, setSeverity] = useState("success")
 	const [isEmailVerified, setIsEmailVerified] = useState(true)
 	const [user, setUser] = useState({
-		avatar: profile.profile_picture,
-		firstName: profile?.first_name,
-		lastName: profile?.last_name,
-		email: profile?.email,
-		phone: profile?.phone_number,
-		address: profile?.address,
-		addressLat: profile?.address_lat,
-		addressLng: profile?.address_lng,
-		idType: profile?.government_id_type,
-		idNumber: profile?.government_id_number,
+		avatar: "",
+		firstName: "",
+		lastName: "",
+		email: "",
+		phone: "",
+		address: "",
+		addressLat: "",
+		addressLng: "",
+		idType: "",
+		idNumber: "",
 	});
 
 	const [updateUserProfile, { isLoading }] = useUpdateUserProfileMutation();
