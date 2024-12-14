@@ -146,7 +146,7 @@ const CarpoolBooking = (props) => {
       const actualData = {
         ride: rideBookId,
         passenger: profile.id,
-        booked_seat: bookedSeatIndices, // Array of unbooked seat indices
+        seats: bookedSeatIndices, // Array of unbooked seat indices
         additional_notes: rideDetails.ride_description,
       };
   
