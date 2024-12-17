@@ -9,14 +9,13 @@ import {
   IconButton,
   Paper,
   useMediaQuery,
+  Avatar,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
 import { useSelector } from "react-redux";
 import {
   useGetConversationMutation,
-  useGetConvoMessagesMutation,
-  useSendMessageMutation,
 } from "../services/apiService";
 
 const WhatsAppChat = () => {
@@ -25,12 +24,12 @@ const WhatsAppChat = () => {
   const [newMessage, setNewMessage] = useState("");
   const { access_token, profile } = useSelector((state) => state.auth);
   const [conversations, setConversations] = useState([]);
+  const [chats, setChats] = useState([])
+
   const [getConversation] = useGetConversationMutation();
-  const [getConvoMessages] = useGetConvoMessagesMutation();
-  const [sendMessage] = useSendMessageMutation();
-  const { id } = profile;
-  const [pollingInterval, setPollingInterval] = useState(null); // State for interval ID
+
   const messagesEndRef = useRef(null); // Ref for scrolling
+  const wsRef = useRef(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -40,23 +39,57 @@ const WhatsAppChat = () => {
 
   const handleConversationClick = (conversation) => {
     setSelectedConversation(conversation);
-    fetchConversationDetails(conversation?.id);
-
-    // Clear any existing polling interval
-    if (pollingInterval) clearInterval(pollingInterval);
-
-    // Start a new polling interval
-    const interval = setInterval(() => {
-      fetchConversationDetails(conversation?.id);
-    }, 3000); // Poll every 3 seconds
-    setPollingInterval(interval);
+    const chat = JSON.parse(conversation.chat)
+    setChats(chat)
   };
 
   const handleBackToList = () => {
     setSelectedConversation(null);
     // Clear polling interval when going back
-    if (pollingInterval) clearInterval(pollingInterval);
+    // if (pollingInterval) clearInterval(pollingInterval);
   };
+
+  const handleSendMessage = () => {
+    if (newMessage.trim() === "") return; // Prevent empty messages
+
+    const tempMessage = {
+      user: profile.email, // Sender email
+      message: newMessage,
+      timestamp: new Date().toISOString(),
+      full_name: profile.name || "You",
+      profile_picture: profile.picture || null,
+      pending: true, // Local "sending" flag
+    };
+
+    // Add the message to the chat immediately
+    setChats((prevChats) => [...prevChats, tempMessage]);
+    setNewMessage(""); // Clear the input field
+
+    // Send the message via WebSocket
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const messagePayload = {
+        message: newMessage,
+        user_id: profile.id,
+      };
+      wsRef.current.send(JSON.stringify(messagePayload));
+    } else {
+      console.error("WebSocket is not connected.");
+    }
+  };
+
+  // const handleSendMessage = () => {
+  //   if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+  //     const messagePayload = {
+  //       message: newMessage,
+  //       user_id: profile.id,
+  //     };
+  //     console.log(messagePayload)
+  //     wsRef.current.send(JSON.stringify(messagePayload));
+  //     setNewMessage(""); // Clear input field
+  //   } else {
+  //     console.error("WebSocket is not connected.");
+  //   }
+  // };
 
   const getConversationList = async () => {
     try {
@@ -68,45 +101,50 @@ const WhatsAppChat = () => {
     }
   };
 
-  const fetchConversationDetails = async (conversationId) => {
-    try {
-      const res = await getConvoMessages({ token: access_token, conversationId });
-      if (res.error) return console.error(res.error.data.errors);
-      setSelectedConversation(res?.data);
-      scrollToBottom(); // Scroll to bottom whenever new messages are loaded
-    } catch (error) {
-      console.error("Error fetching conversation details:", error);
-    }
-  };
+  useEffect(() => {
+    if (selectedConversation && selectedConversation.id) {
+      // Initialize WebSocket
+      const ws = new WebSocket(
+        `ws://carnest-be-load-balancer-562551915.us-east-2.elb.amazonaws.com/ws/booking/${selectedConversation?.id}/`
+      );
+      wsRef.current = ws;
 
-  const handleSendMessage = async () => {
-    try {
-      const res = await sendMessage({
-        access_token,
-        conversationId: selectedConversation?.conversation_id,
-        message: newMessage,
-      });
-      if (res.error) return console.error(res.error.data.errors);
-      setNewMessage("");
-      fetchConversationDetails(selectedConversation?.conversation_id);
-    } catch (error) {
-      console.error("Error sending message:", error);
+      // Handle WebSocket events
+      ws.onopen = () => {
+        console.log("WebSocket connection established.");
+      };
+
+      ws.onmessage = (event) => {
+        const incomingMessage = JSON.parse(event.data);
+        console.log("Message received:", incomingMessage);
+
+        setChats(incomingMessage.chat_history)
+        scrollToBottom();
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket connection closed.");
+      };
+
+      // Cleanup on unmount
+      return () => {
+        ws.close();
+      };
     }
-  };
+  }, [selectedConversation]); // Empty dependency array ensures this runs only on mount/unmount
 
   useEffect(() => {
     getConversationList();
-
-    // Clear interval when component unmounts
-    return () => {
-      if (pollingInterval) clearInterval(pollingInterval);
-    };
   }, []);
 
   useEffect(() => {
     // Scroll to bottom when selectedConversation changes
     scrollToBottom();
-  }, [selectedConversation]);
+  }, [chats]);
 
   return (
     <Box
@@ -132,16 +170,24 @@ const WhatsAppChat = () => {
           </Typography>
           <List>
             {conversations.map((conversation, index) => (
-              conversation?.second_participant_name && <ListItem
+              <ListItem
                 button
                 key={index}
                 onClick={() => handleConversationClick(conversation)}
                 sx={{
+                  borderTop: index == 0 ? "1px solid #ddd" : "none",
                   borderBottom: "1px solid #ddd",
                   "&:hover": { backgroundColor: "#f5f5f5" },
                 }}
               >
-                <ListItemText primary={conversation?.second_participant_name} />
+                <Avatar
+                  src={`${process.env.REACT_APP_BASE_URL}${profile.id === conversation.driver_id ? conversation?.passenger_pic : conversation?.driver_pic || ""}`}
+                  alt={profile.id === conversation.driver_id ? conversation?.passenger_name : conversation?.driver_name}
+                  sx={{ mr: 2 }}
+                >
+                  {profile.id === conversation.driver_id ? conversation?.passenger_name : conversation?.driver_name} {/* Fallback to initials */}
+                </Avatar>
+                <ListItemText primary={profile.id === conversation.driver_id ? conversation?.passenger_name : conversation?.driver_name} />
               </ListItem>
             ))}
           </List>
@@ -169,7 +215,7 @@ const WhatsAppChat = () => {
                 <ArrowBackIcon />
               </IconButton>
             )}
-            <Typography variant="h6">{selectedConversation?.participants[0]}</Typography>
+            <Typography variant="h6">{profile.id === selectedConversation.driver_id ? selectedConversation?.passenger_name : selectedConversation?.driver_name}</Typography>
           </Box>
 
           {/* Messages */}
@@ -182,26 +228,47 @@ const WhatsAppChat = () => {
               mb: isMobile ? 4 : 0,
             }}
           >
-            {selectedConversation?.result?.map((message, index) => (
+            {chats?.map((message, index) => (
               <Box
                 key={index}
                 sx={{
                   display: "flex",
-                  flexDirection: message.sender === id ? "row-reverse" : "row",
+                  flexDirection: message.user === profile.email ? "row-reverse" : "row", // Align based on sender
+                  alignItems: "flex-start",
                   marginBottom: 2,
                 }}
               >
+                {/* Profile Picture */}
+                <Avatar
+                  src={`${process.env.REACT_APP_BASE_URL}${message.profile_picture || ""}`}
+                  alt={message.full_name}
+                  sx={{
+                    margin: message.user === profile.email ? "0 0 0 8px" : "0 8px 0 0", // Adjust margin based on alignment
+                    bgcolor: message.profile_picture ? "transparent" : "#FF6436", // Fallback background color for initials
+                    color: "#fff",
+                  }}
+                >
+                  {!message.profile_picture && message.full_name?.[0]} {/* Fallback to initials */}
+                </Avatar>
+
+                {/* Message Bubble */}
                 <Paper
                   sx={{
                     padding: 1.5,
-                    backgroundColor: message.sender === id ? "#FF6436" : "#f1f1f1",
-                    color: message.sender === id ? "#fff" : "#000",
+                    backgroundColor: message.user === profile.email ? "#FF6436" : "#f1f1f1", // Different colors for sent/received
+                    color: message.user === profile.email ? "#fff" : "#000",
                     maxWidth: "70%",
                     borderRadius: "15px",
                   }}
                 >
-                  <Typography>{message.content}</Typography>
-                  <Typography variant="caption" sx={{ display: "block", marginTop: 0.5 }}>
+                  {/* Message Content */}
+                  <Typography>{message.message}</Typography>
+
+                  {/* Timestamp */}
+                  <Typography
+                    variant="caption"
+                    sx={{ display: "block", marginTop: 0.5, textAlign: message.user === profile.email ? "right" : "left" }}
+                  >
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </Typography>
                 </Paper>

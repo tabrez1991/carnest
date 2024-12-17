@@ -109,7 +109,7 @@ const ViewRide = (props) => {
               <strong>Passenger:</strong> {ride.Passenger_name}
             </Typography>
             <Typography>
-              <strong>Seats Selected:</strong> {ride.selected_seats.join(", ")}
+              <strong>Seats Selected:</strong> {ride?.selected_seats.join(", ")}
             </Typography>
 
             <Stack direction="row" alignItems="center" spacing={1}>

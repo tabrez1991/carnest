@@ -4,8 +4,7 @@ const initialState = {
 	vehiclesList: [],
 	availableRides: {},
 	rideDetails: {},
-	bookedRides: [],
-	postedRides: []
+	bookedRides: []
 }
 
 export const apiSlice = createSlice({
@@ -23,13 +22,10 @@ export const apiSlice = createSlice({
 		},
 		setBookedRides: (state, action) => {
 			state.bookedRides = action.payload.data
-		},
-		setPostedRides: (state, action) => {
-			state.postedRides = action.payload.data
-		},
+		}
 	}
 })
 
-export const { setVehiclesList, setAvailableSeats, setRideDetails, setBookedRides, setPostedRides } = apiSlice.actions
+export const { setVehiclesList, setAvailableSeats, setRideDetails, setBookedRides } = apiSlice.actions
 
 export default apiSlice.reducer

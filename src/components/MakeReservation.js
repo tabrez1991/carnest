@@ -38,6 +38,7 @@ const CarpoolBooking = (props) => {
 
   const { access_token, profile } = useSelector((state) => state.auth);
   const { rideDetails } = useSelector((state) => state.apiSlice);
+  console.log("rideDetails", rideDetails)
 
   const availableSeats = generateSeatList(4);
 
@@ -50,8 +51,6 @@ const CarpoolBooking = (props) => {
           passenger.selected_seats.includes(seat)
         )
     );
-    console.log("bookedSeats", bookedSeats)
-    console.log("selectedSeat", selectedSeats);
     const result = selectedSeats.filter(item => !bookedSeats.includes(item));
     return result
   }
@@ -63,10 +62,11 @@ const CarpoolBooking = (props) => {
           passenger.selected_seats.includes(seat)
         )
     );
+    console.log(selectedSeats);
     if (nonBookedSeats.includes(seat)) {
       if (selectedSeats.includes(seat)) {
         setSelectedSeats(selectedSeats.filter((s) => s !== seat));
-      } else if (selectedSeats.length < rideDetails?.total_number_of_seats - 1) {
+      } else if (selectedSeats.length < rideDetails?.total_number_of_seats) {
         setSelectedSeats([...selectedSeats, seat]);
       }
     } else {
@@ -124,16 +124,16 @@ const CarpoolBooking = (props) => {
       'Back Left': 3,   // Back-left maps to seat index 2
       'Back Right': 4,  // Back-right maps to seat index 3
     };
-  
+
     // Get all booked seat names from ride details
     const bookedSeats = rideDetails?.passengers.flatMap((passenger) => passenger.selected_seats) || [];
-  
+
     // Filter selectedSeats to include only those not already booked
     const availableSelectedSeats = selectedSeats.filter((seat) => !bookedSeats.includes(seat));
-  
+
     // Map available seats to indices for backend
     const bookedSeatIndices = availableSelectedSeats.map((seat) => seatMapping[seat]);
-  
+
     // If no available seats are selected, show an error
     if (bookedSeatIndices.length === 0) {
       setMessage("No available seats selected.");
@@ -141,7 +141,7 @@ const CarpoolBooking = (props) => {
       setSeverity("error");
       return;
     }
-  
+
     try {
       const actualData = {
         ride: rideBookId,
@@ -149,12 +149,18 @@ const CarpoolBooking = (props) => {
         seats: bookedSeatIndices, // Array of unbooked seat indices
         additional_notes: rideDetails.ride_description,
       };
-  
+
       const res = await bookRide({ actualData, access_token });
       if (res.error) {
-        setMessage(res.error.data.errors);
-        setOpen(true);
-        setSeverity("error");
+        if (res.error?.data?.non_field_errors) {
+          res.error?.data?.non_field_errors.map(i => setMessage(i));
+          setOpen(true);
+          setSeverity("error");
+        } else {
+          setMessage(res.error.data.errors);
+          setOpen(true);
+          setSeverity("error");
+        }
       } else if (res.data) {
         console.log(res);
         setMessage("Ride booked successfully");
@@ -307,7 +313,7 @@ const CarpoolBooking = (props) => {
                 <Box>
                   <Typography variant="body2">
                     Other passengers:
-                    <strong>{rideDetails.passengers.map(item => item.passenger_name).join(',')}</strong>
+                    <strong>{rideDetails.passengers.map(item => item.Passenger_name).join(',')}</strong>
                   </Typography>
                 </Box>
               </CardContent>

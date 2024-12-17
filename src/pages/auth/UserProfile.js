@@ -12,7 +12,6 @@ import {
 	MenuItem,
 } from "@mui/material";
 import Grid from '@mui/material/Grid2';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useMediaQuery, useTheme } from "@mui/system";
 import { useDispatch, useSelector } from "react-redux";
 import LocationSearchInput from "../../components/LocationSearchInput";
@@ -29,7 +28,6 @@ const UserProfile = () => {
 	const [avtarChange, setAvatarChange] = useState(false);
 	const [newAvatar, setNewAvatar] = useState(null);
 	const [severity, setSeverity] = useState("success")
-	const [isEmailVerified, setIsEmailVerified] = useState(true)
 	const [user, setUser] = useState({
 		avatar: "",
 		firstName: "",
@@ -193,7 +191,7 @@ const UserProfile = () => {
 						<label htmlFor="avatar-upload">
 							<Avatar
 								sx={{ width: 100, height: 100, cursor: "pointer" }}
-								src={avtarChange ? newAvatar : `${process.env.REACT_APP_BASE_URL}/${user.avatar}`}
+								src={avtarChange ? newAvatar : `${process.env.REACT_APP_BASE_URL}${user.avatar}`}
 							>
 								{user?.firstName?.[0]}
 							</Avatar>
@@ -236,11 +234,6 @@ const UserProfile = () => {
 						type="email"
 						fullWidth
 						margin="normal"
-						InputProps={{
-							endAdornment: isEmailVerified && (
-								<CheckCircleIcon sx={{ color: "green", marginLeft: 1 }} />
-							),
-						}}
 					/>
 					<TextField
 						label="Phone Number"
