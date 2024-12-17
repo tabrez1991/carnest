@@ -13,65 +13,118 @@ import {
 	DialogTitle,
 	DialogContent,
 	DialogActions,
-	Tab,
-	Tabs,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import ViewRide from "../components/ViewRide";
 import { useCancelRideMutation, useGetBookedRidesMutation } from "../services/apiService";
-import { setBookedRides, setPostedRides } from "../features/apiSlice";
+import { setBookedRides } from "../features/apiSlice";
 
 const YourRides = () => {
+	const { bookedRides } = useSelector((state) => state.apiSlice);
 	const dispatch = useDispatch();
 	const { access_token } = useSelector((state) => state.auth);
-	const { bookedRides, postedRides } = useSelector((state) => state.apiSlice);
-
-	const [getBookedRides] = useGetBookedRidesMutation();
 	const [cancelRide] = useCancelRideMutation();
+	const [getBookedRides] = useGetBookedRidesMutation();
 
 	const today = new Date();
-	const formatDate = (date) => new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 
-	// Tab state
-	const [tabValue, setTabValue] = useState(0);
+	const formatDate = (date) => {
+		const options = { day: "2-digit", month: "short", year: "numeric" };
+		return new Intl.DateTimeFormat("en-US", options).format(date);
+	};
 
-	// States for rides
-	const [bookedData, setBookedData] = useState({ upcoming: [], past: [] });
-	const [postedData, setPostedData] = useState({ upcoming: [], past: [] });
-
-	// Sort states
-	const [bookedSortConfig, setBookedSortConfig] = useState({ column: "date", direction: "asc" });
-	const [postedSortConfig, setPostedSortConfig] = useState({ column: "date", direction: "asc" });
-
-	// Modal states
+	const [ridesData, setRidesData] = useState({ upcoming: [], past: [] });
 	const [viewRide, setViewRide] = useState(null);
 	const [isViewRide, setIsViewRide] = useState(false);
 	const [rideToCancel, setRideToCancel] = useState(null);
 	const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+	const [upcomingSortConfig, setUpcomingSortConfig] = useState({
+		column: "date",
+		direction: "asc",
+	});
+	const [pastSortConfig, setPastSortConfig] = useState({
+		column: "date",
+		direction: "asc",
+	});
 
-	// Fetch booked rides
-	const getBookedRideList = async () => {
-		try {
-			const res = await getBookedRides(access_token);
-			if (res.data) dispatch(setBookedRides({ data: res.data }));
-		} catch (error) {
-			console.error(error);
+	const [upcomingSortedData, setUpcomingSortedData] = useState([]);
+	const [pastSortedData, setPastSortedData] = useState([]);
+
+	useEffect(() => {
+		const upcoming = [];
+		const past = [];
+		bookedRides.forEach((ride) => {
+			const rideDate = new Date(ride.ride_date);
+			const rideInfo = {
+				date: formatDate(rideDate),
+				from: ride.going_from,
+				to: ride.going_to,
+				rideBy: ride.driver_name,
+				...ride,
+			};
+
+			if (rideDate >= today) {
+				upcoming.push(rideInfo);
+			} else {
+				past.push(rideInfo);
+			}
+		});
+
+		setRidesData({ upcoming, past });
+		setUpcomingSortedData(upcoming);
+		setPastSortedData(past);
+	}, [bookedRides]); // eslint-disable-line
+
+	const handleSort = (type, column) => {
+		const isUpcoming = type === "upcoming";
+		const sortConfig = isUpcoming ? upcomingSortConfig : pastSortConfig;
+		const newDirection = sortConfig.column === column && sortConfig.direction === "asc" ? "desc" : "asc";
+
+		const sortedData = [...(isUpcoming ? ridesData.upcoming : ridesData.past)].sort((a, b) => {
+			if (column === "date") {
+				const dateA = new Date(a[column]);
+				const dateB = new Date(b[column]);
+				return newDirection === "asc" ? dateA - dateB : dateB - dateA;
+			} else {
+				return newDirection === "asc"
+					? a[column].localeCompare(b[column])
+					: b[column].localeCompare(a[column]);
+			}
+		});
+
+		if (isUpcoming) {
+			setUpcomingSortConfig({ column, direction: newDirection });
+			setUpcomingSortedData(sortedData);
+		} else {
+			setPastSortConfig({ column, direction: newDirection });
+			setPastSortedData(sortedData);
 		}
 	};
 
-	// Handle sorting logic
-	const handleSort = (type, column, rides, setRides, sortConfig, setSortConfig) => {
-		const newDirection = sortConfig.column === column && sortConfig.direction === "asc" ? "desc" : "asc";
-		const sortedData = [...rides].sort((a, b) => {
-			if (column === "date") {
-				return newDirection === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date);
-			} else if (column === "used") {
-				return newDirection === "asc" ? a[column] - b[column] : b[column] - a[column];
+	const handleVeiwRide = (ride) => {
+		setViewRide(ride);
+		setIsViewRide(true);
+	};
+
+	const handleCloseViewRide = () => {
+		setViewRide(null);
+		setIsViewRide(false);
+	};
+
+	const getBookedRideList = async () => {
+		try {
+			const res = await getBookedRides(access_token);
+			if (res.error) {
+				console.error(res.error.data.errors);
+				return;
 			}
-			return newDirection === "asc" ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
-		});
-		setSortConfig({ column, direction: newDirection });
-		setRides(sortedData);
+			if (res.data) {
+				const { data } = res;
+				dispatch(setBookedRides({ data }));
+			}
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	const handleCancelConfirm = async () => {
@@ -98,89 +151,86 @@ const YourRides = () => {
 		setCancelConfirmOpen(true);
 	};
 
-
-	// Categorize rides into upcoming and past
-	const categorizeRides = (rides, setState) => {
-		const upcoming = [];
-		const past = [];
-		rides.forEach((ride) => {
-			const rideDate = new Date(ride.ride_date);
-			const rideInfo = {
-				date: formatDate(rideDate),
-				from: ride.going_from,
-				to: ride.going_to,
-				rideBy: ride.driver_name,
-				used: ride.used || false,
-				...ride,
-			};
-			rideDate >= today ? upcoming.push(rideInfo) : past.push(rideInfo);
-		});
-		setState({ upcoming, past });
-	};
-
-	const handleVeiwRide = (ride) => {
-		setViewRide(ride);
-		setIsViewRide(true);
-	};
-
-	const handleCloseViewRide = () => {
-		setViewRide(null);
-		setIsViewRide(false);
-	};
-
 	useEffect(() => {
 		getBookedRideList();
-	}, []);
+	}, []); // eslint-disable-line
 
-	useEffect(() => categorizeRides(bookedRides, setBookedData), [bookedRides]);
-	useEffect(() => categorizeRides(postedRides, setPostedData), [postedRides]);
-
-	const renderTable = (title, rides, sortConfig, setSortConfig, type) => (
+	const renderTable = (title, rides, sortConfig, onSort, type) => (
 		<>
-			<Typography variant="h6" sx={{ fontWeight: 700, mb: 2, }}>
+			<Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: "center" }}>
 				{title}
 			</Typography>
 			<Box sx={{ overflowX: "auto" }}>
 				<Table>
 					<TableHead>
 						<TableRow>
-							{["Date", "From", "To", "Ride by", "Used"].map((col) => (
-								<TableCell key={col}>
-									<TableSortLabel
-										active={sortConfig.column === col.toLowerCase()}
-										direction={sortConfig.column === col.toLowerCase() ? sortConfig.direction : "asc"}
-										onClick={() => handleSort(type, col.toLowerCase(), rides, setSortConfig, sortConfig)}
-									>
-										{col}
-									</TableSortLabel>
-								</TableCell>
-							))}
-							<TableCell>Actions</TableCell>
+							<TableCell>
+								<TableSortLabel
+									active={sortConfig.column === "date"}
+									direction={sortConfig.column === "date" ? sortConfig.direction : "asc"}
+									onClick={() => onSort(type, "date")}
+									sx={{ fontWeight: 700 }}
+								>
+									Date
+								</TableSortLabel>
+							</TableCell>
+							<TableCell>
+								<TableSortLabel
+									active={sortConfig.column === "from"}
+									direction={sortConfig.column === "from" ? sortConfig.direction : "asc"}
+									onClick={() => onSort(type, "from")}
+									sx={{ fontWeight: 700 }}
+								>
+									From
+								</TableSortLabel>
+							</TableCell>
+							<TableCell>
+								<TableSortLabel
+									active={sortConfig.column === "to"}
+									direction={sortConfig.column === "to" ? sortConfig.direction : "asc"}
+									onClick={() => onSort(type, "to")}
+									sx={{ fontWeight: 700 }}
+								>
+									To
+								</TableSortLabel>
+							</TableCell>
+							<TableCell>
+								<TableSortLabel
+									active={sortConfig.column === "rideBy"}
+									direction={sortConfig.column === "rideBy" ? sortConfig.direction : "asc"}
+									onClick={() => onSort(type, "rideBy")}
+									sx={{ fontWeight: 700 }}
+								>
+									Ride by
+								</TableSortLabel>
+							</TableCell>
+							<TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
 						{rides.map((ride, index) => (
 							<TableRow key={index}>
-								<TableCell>{ride.date}</TableCell>
-								<TableCell>{ride.from}</TableCell>
-								<TableCell>{ride.to}</TableCell>
-								<TableCell>{ride.rideBy}</TableCell>
-								<TableCell>{ride.used ? "Yes" : "No"}</TableCell>
-								<TableCell>
-									<Button
-										sx={{ color: "orange", textTransform: "none", fontWeight: 700 }}
-										onClick={() => handleVeiwRide(ride)}
-									>
-										View Ride
-									</Button>
-									{type === "booked" && ride.status !== "Cancelled" && new Date(ride.ride_date) >= today && (
+								<TableCell sx={{ maxWidth: "150px" }}>{ride.date}</TableCell>
+								<TableCell sx={{ maxWidth: "150px" }}>{ride.from}</TableCell>
+								<TableCell sx={{ maxWidth: "150px" }}>{ride.to}</TableCell>
+								<TableCell sx={{ maxWidth: "150px" }}>{ride.rideBy}</TableCell>
+								<TableCell sx={{ maxWidth: "150px" }}>
+									<Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1 }}>
 										<Button
-											sx={{ color: "red", textTransform: "none", fontWeight: 700 }}
-											onClick={() => openCancelConfirm(ride)}
+											sx={{ color: "orange", textTransform: "none", fontWeight: 700 }}
+											onClick={() => handleVeiwRide(ride)}
 										>
-											Cancel
+											View Ride
 										</Button>
-									)}
+										{ride.status !== "Cancelled" && (
+											<Button
+												sx={{ color: "red", textTransform: "none", fontWeight: 700 }}
+												onClick={() => openCancelConfirm(ride)}
+											>
+												Cancel
+											</Button>
+										)}
+									</Box>
 								</TableCell>
 							</TableRow>
 						))}
@@ -191,40 +241,28 @@ const YourRides = () => {
 	);
 
 	return (
-		<Box sx={{ padding: 2 }}>
-			{/* Tabs */}
-			<Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
-				<Tab label="Booked Rides" />
-				<Tab label="Posted Rides" />
-			</Tabs>
-
-			{/* Cancel Confirmation */}
+		<Box sx={{ padding: 2, backgroundColor: "#f9f9f9" }}>
 			<Dialog open={cancelConfirmOpen} onClose={() => setCancelConfirmOpen(false)}>
 				<DialogTitle>Confirm Cancellation</DialogTitle>
-				<DialogContent>Are you sure you want to cancel this ride?</DialogContent>
+				<DialogContent>
+					Are you sure you want to cancel this ride?
+				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => setCancelConfirmOpen(false)}>No</Button>
-					<Button color="error" onClick={() => handleCancelConfirm()}>Yes</Button>
+					<Button onClick={handleCancelConfirm} color="error">
+						Yes
+					</Button>
 				</DialogActions>
 			</Dialog>
-
-			{/* Content based on tab */}
-			{tabValue === 0 && (
-				<>
-					{renderTable("Booked Upcoming Rides", bookedData.upcoming, bookedSortConfig, setBookedSortConfig, "booked")}
-					{renderTable("Booked Past Rides", bookedData.past, bookedSortConfig, setBookedSortConfig, "booked")}
-				</>
+			{renderTable(
+				"Upcoming Rides",
+				upcomingSortedData,
+				upcomingSortConfig,
+				handleSort,
+				"upcoming"
 			)}
-
-			{tabValue === 1 && (
-				<>
-					{renderTable("Posted Upcoming Rides", postedData.upcoming, postedSortConfig, setPostedSortConfig, "posted")}
-					{renderTable("Posted Past Rides", postedData.past, postedSortConfig, setPostedSortConfig, "posted")}
-				</>
-			)}
-
-			{/* View Ride Modal */}
-			{isViewRide && <ViewRide ride={viewRide} handleCloseModal={() => setIsViewRide(false)} />}
+			{renderTable("Past Rides", pastSortedData, pastSortConfig, handleSort, "past")}
+			{isViewRide && <ViewRide ride={viewRide} handleCloseModal={handleCloseViewRide} />}
 		</Box>
 	);
 };

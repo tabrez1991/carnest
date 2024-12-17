@@ -147,7 +147,7 @@ const Navbar = () => {
   // eslint-disable-next-line
   useEffect(() => {
     getProfileDetails();
-  }, [])
+  }, []) // eslint-disable-line
 
   return (
     <AppBar position="static" sx={{ backgroundColor: 'background.paper', borderRadius: '30px', boxShadow: 'none', zIndex: 1001 }}>

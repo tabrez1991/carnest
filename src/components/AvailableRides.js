@@ -16,16 +16,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useGetRidesByIdMutation } from "../services/apiService";
 import { setRideDetails } from "../features/apiSlice";
 import { format } from "date-fns";
-
+import {  useNavigate } from 'react-router-dom';
 const center = { lat: 36.7783, lng: -119.4179 }; // California center for initial map view
 
 const AvailableRides = (props) => {
   const { handleBook, handleBack } = props;
-
+  const navigate = useNavigate();
   const { access_token } = useSelector((state) => state.auth);
   const { availableRides } = useSelector((state) => state.apiSlice);
   const { rides } = availableRides;
-
+  const isLoggedIn = Boolean(access_token);
   const [selectedRide, setSelectedRide] = useState(null);
   const [directions, setDirections] = useState(null);
   const [open, setOpen] = useState(false);
@@ -91,7 +91,13 @@ const AvailableRides = (props) => {
   }, [rides]);
 
   if (!isLoaded) return <Typography>Loading Maps...</Typography>;
-
+  const handleSearch = () => {
+    if (isLoggedIn) {
+      getRideDetails(selectedRide.id);
+    } else {
+      navigate("/login");
+    }
+  };
   return (
     <Box
       sx={{
@@ -165,11 +171,20 @@ const AvailableRides = (props) => {
               >
                 {ride.price_per_seat}
               </Typography>
-              {ride.available_seats <= 1 ? (
-                <Box></Box>
+              {!ride.available_seats ? (
+                <Button
+                size="small"
+                variant="contained"
+                disabled
+                color="warning"
+                sx={{ float: "right", textTransform: "capitalize" }}
+                onClick={handleSearch}
+              >
+                All seats booked
+              </Button>
               ) : isLoading && ride.id === selectedRide.id ? (
                 <Box sx={{ float: "right" }}>
-                  <CircularProgress size={25} />
+                  <CircularProgress size={25} /> 
                 </Box>
               ) : (
                 <Button
@@ -177,9 +192,9 @@ const AvailableRides = (props) => {
                   variant="contained"
                   color="warning"
                   sx={{ float: "right", textTransform: "capitalize" }}
-                  onClick={() => getRideDetails(ride.id)}
+                  onClick={handleSearch}
                 >
-                  Book
+                  {isLoggedIn ? "Book Now" : "Login to Book"}
                 </Button>
               )}
               <Divider sx={{ my: 1 }} />

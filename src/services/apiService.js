@@ -12,7 +12,6 @@ export const apiService = createApi({
           method: 'GET',
           headers: {
             'Content-type': 'application/json',
-            'Authorization': `Bearer ${token}`
           }
         }
       }
@@ -144,7 +143,7 @@ export const apiService = createApi({
     getConversation: builder.mutation({
       query: (token) => {
         return {
-          url: 'user/conversations/',
+          url: 'booking/chats/',
           method: 'GET',
           headers: {
             'Content-type': 'application/json',

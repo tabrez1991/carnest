@@ -8,8 +8,6 @@ import {
   Checkbox,
   FormControlLabel,
   Alert,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
@@ -23,22 +21,8 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [serverError, setServerError] = useState({});
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    password: "",
-    password2: "",
-    terms_and_conditions_accepted: false,
-    role: "",
-  });
 
   const [registerUser, { isLoading }] = useRegisterUserMutation();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

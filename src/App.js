@@ -13,6 +13,7 @@ import Vehicles from "./pages/Vehicles";
 import ChangePassword from "./pages/auth/ChangePassword";
 import SendPasswordResetEmail from "./pages/auth/SendPasswordResetEmail";
 import ResetPassword from "./pages/auth/ResetPassword";
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   const { access_token } = useSelector((state) => state.auth);
@@ -22,8 +23,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route index element={<LandingPage />} />
             <Route index element={<Navigate to={access_token ? "/search" : "/login"} />} />
-
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
